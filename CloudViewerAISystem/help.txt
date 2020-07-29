@@ -1,0 +1,48 @@
+pscp helmet_detect_utils.zip rpdzkj@192.168.17.107:/home/rpdzkj/erowvideosrc/
+
+nvidia-docker run --runtime=nvidia --privileged=true --name=sniper_envs -it -v /home/asher/develop/AI/object_detection:/data ufoym/deepo bash
+sudo docker run --runtime=nvidia --privileged=true --name=sniper_envs -it -v /home/asher/develop/AI:/data sniper:v2 bash
+make -j 4 USE_CUDA_PATH=/usr/local/cuda
+sudo pkill -SIGHUP dockerd
+
+docker image  build -t sniper:v1 -f Dockerfile .
+sudo ldconfig /usr/local/cuda
+cmake -D CMAKE_BUILD_TYPE=Release \
+-D CMAKE_INSTALL_PREFIX=/usr/local/opencv346 \
+-D PYTHON_DEFAULT_EXECUTABLE=$(which python) \
+-D WITH_TBB=ON -D WITH_EIGEN=ON ..
+
+conda activate mxnet-gpu
+bash scripts/train_neg_props_and_sniper.sh --cfg configs/faster/helmet_sniper_res101_e2e.yml
+
+
+# for tensorflow-serving server
+docker run --runtime=nvidia --name=tfserving_helmet_detector -p 9000:8500 -p 9001:8501 \
+  --mount type=bind,source=/home/workprojects/erowaiserver/aiserverconfigures/helmet-utils-model/helmet_detector,target=/models/HelmetDetector \
+  -e MODEL_NAME=HelmetDetector -t tensorflow/serving:1.12.0-gpu \
+  --tensorflow_intra_op_parallelism=8 --tensorflow_inter_op_parallelism=8 &
+
+# for tensorflow-serving local
+docker run --runtime=nvidia --name=tfserving_helmet_detector -p 9000:8500 -p 9001:8501 \
+  --mount type=bind,source=/home/yons/develop/AI/object_detection/tensorflow_serving_deployment/helmet_detector,target=/models/HelmetDetector \
+  -e MODEL_NAME=HelmetDetector -t tensorflow/serving:1.13.0-gpu \
+--tensorflow_intra_op_parallelism=4 --tensorflow_inter_op_parallelism=4 &
+# for tensorflow serving start
+docker start tfserving_helmet_detector
+docker stop tfserving_helmet_detector
+
+docker exec -it containerID /bin/bash
+
+
+netstat -anput | grep 5055
+sudo lsof -i:5000
+saved_model_cli show --dir ./ --all
+
+# 用于去除使用pycharm修改项目代码时提示：Clear Read-Only Status
+sudo chown -R $USER /projectdirectory(这里就写你项目的目录)
+
+docker commit -a "asher" -m "sniper environment" 86acd61d3cf3 sniper:v1
+
+docker run --runtime=nvidia --name=sniper_envs -it -p 9002:5000 sniper:v1
+docker start sniper_envs
+docker exec -it sniper_envs /bin/bash /root/SNIPER/start_gunicorn.sh &
