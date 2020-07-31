@@ -55,7 +55,9 @@ class AIPointCloud(object):
                 logger.error(message)
                 return {'result': [], 'infer_time_take': 0, 'state': message}
 
-            has_regions = "regions" in target_info_dict
+            has_regions = "regions" in target_info_dict\
+                          and "box" in target_info_dict["regions"] \
+                          and len(target_info_dict["regions"]["box"]) > 0
             has_regions_list.append(has_regions)
             targets_infos.append(target_info_dict["targets"])
             pc = None

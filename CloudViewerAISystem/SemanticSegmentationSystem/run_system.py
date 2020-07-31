@@ -160,12 +160,27 @@ class InterfaceTest(object):
     def segmentation_test_with_file():
         file_list = file_processing.get_files_list(TEST_PATH, EXTENT)
         # file_list += file_processing.get_files_list(TEST_PATH, ".ply")
-        target_info_list = [{"Utility-Pole": 3} for file in file_list]
-        res = InterfaceTest.cloud_ai.semantic_segmentation(file_list, target_info_list=target_info_list)
+        info_dict = dict()
+        info_dict["files"] = file_list
+        steps_dict = dict()
+        region_dict = dict()
+        region_dict["box"] = []
+        region_dict["sphere"] = [{}, ]
+        steps_dict["regions"] = region_dict
+        steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 3}
+        info_dict["strategy"] = steps_dict
+        res = InterfaceTest.cloud_ai.semantic_segmentation([info_dict["files"]],
+                                                           target_info_list=[info_dict["strategy"]])
         if res["state"] == "success":
+            # write detection result in json format
+            with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
+                fp.write(json.dumps(res, indent=4, ensure_ascii=False))
+            print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
+
             segmentation_info = res["instances"]
-            if len(file_list) == len(segmentation_info):
-                InterfaceTest.visualize_segmentations(segmentation_info, file_list)
+            scene_name_list = list(segmentation_info.keys())
+            cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
+            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
 
     @staticmethod
     def segmentation_test_with_array():
@@ -179,9 +194,34 @@ class InterfaceTest(object):
         res = InterfaceTest.cloud_ai.semantic_segmentation(cloud_list,
                                                            target_info_list=target_info_list)
         if res["state"] == "success":
+            # write detection result in json format
+            with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
+                fp.write(json.dumps(res, indent=4, ensure_ascii=False))
+            print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
+
             segmentation_info = res["instances"]
-            if len(file_list) == len(segmentation_info):
-                InterfaceTest.visualize_segmentations(segmentation_info, file_list)
+            scene_name_list = list(segmentation_info.keys())
+            cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
+            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
+
+    @staticmethod
+    def parse_result(root_path, scene_name_list):
+        cloud_list = []
+        for scene_name in scene_name_list:
+            name_list = scene_name.split(",")
+            if len(name_list) == 1:
+                cloud_list.append(os.path.join(root_path, name_list[0]))
+            else:
+                pc = None
+                for name in name_list:
+                    file = os.path.join(root_path, name)
+                    if pc is None:
+                        pc, _ = AIPointCloud.read_clouds(file)
+                    else:
+                        pc_array, _ = AIPointCloud.read_clouds(file)
+                        pc = np.concatenate((pc, pc_array), axis=0)
+                cloud_list.append(pc)
+        return cloud_list
 
     @staticmethod
     def visualization_test():
@@ -199,9 +239,9 @@ class InterfaceTest(object):
         InterfaceTest.visualize_segmentations(res, scene_names)
 
     @staticmethod
-    def visualize_segmentations(segmentation_info, scene_names):
+    def visualize_segmentations(segmentation_info, scenes):
         cmap = plt.get_cmap("tab20")
-        for scene, label_key in zip(scene_names, list(segmentation_info.keys())):
+        for scene, label_key in zip(scenes, list(segmentation_info.keys())):
             # read point clouds
             if isinstance(scene, str):
                 pc_array, point_cloud = read_clouds(scene)
@@ -231,9 +271,8 @@ class InterfaceTest(object):
             tools.Plot.draw_geometries([point_cloud] + bounding_boxes)
 
     @staticmethod
-    def visualize_json_result():
-        json_result = os.path.join(TEST_PATH, "result.json")
-        with open(json_result, 'r', encoding='utf8')as fp:
+    def visualize_json_result(json_path):
+        with open(json_path, 'r', encoding='utf8')as fp:
             det_dict = json.load(fp)
         if 'state' in det_dict.keys():
             state = det_dict['state']
@@ -247,30 +286,16 @@ class InterfaceTest(object):
         if "instances" in det_dict.keys():
             segmentation_info = det_dict["instances"]
             scene_name_list = list(segmentation_info.keys())
-            cloud_list = []
-            for scene_name in scene_name_list:
-                name_list = scene_name.split(",")
-                if len(name_list) == 1:
-                    cloud_list.append(name_list[0])
-                else:
-                    pc = None
-                    for name in name_list:
-                        file = os.path.join(TEST_PATH, name)
-                        if pc is None:
-                            pc, _ = AIPointCloud.read_clouds(file)
-                        else:
-                            pc_array, _ = AIPointCloud.read_clouds(file)
-                            pc = np.concatenate((pc, pc_array), axis=0)
-                    cloud_list.append(pc)
-
+            cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
             InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
 
 
 if __name__ == '__main__':
     tools.Utility.set_verbosity_level(level=tools.VerbosityLevel.Debug)
     TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
+    json_result = os.path.join(TEST_PATH, "2_aa_bin_result.json")
     # EXTENT = '.txt'
-    EXTENT = ".pcd"
+    EXTENT = ".bin"
     LABEL_EXTENT = ".labels"
     MIN_POINTS = 100
 
@@ -278,4 +303,4 @@ if __name__ == '__main__':
     tester = InterfaceTest()
     # tester.segmentation_test_with_file()
     # tester.visualization_test()
-    tester.visualize_json_result()
+    tester.visualize_json_result(json_result)

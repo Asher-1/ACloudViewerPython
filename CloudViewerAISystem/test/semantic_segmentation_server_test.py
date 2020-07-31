@@ -50,21 +50,7 @@ def post(detection_infos):
     if "instances" in res_dict.keys():
         segmentation_info = res_dict["instances"]
         scene_name_list = list(segmentation_info.keys())
-        cloud_list = []
-        for scene_name in scene_name_list:
-            name_list = scene_name.split(",")
-            if len(name_list) == 1:
-                cloud_list.append(name_list[0])
-            else:
-                pc = None
-                for name in name_list:
-                    file = os.path.join(TEST_PATH, name)
-                    if pc is None:
-                        pc, _ = tools.IO.read_point_cloud(file)
-                    else:
-                        pc_array, _ = tools.IO.read_point_cloud(file)
-                        pc = np.concatenate((pc, pc_array), axis=0)
-                cloud_list.append(pc)
+        cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
         InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
 
 
@@ -83,7 +69,7 @@ if __name__ == '__main__':
     ]
     region_dict["sphere"] = [{}, ]
     steps_dict["regions"] = region_dict
-    steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 3}
+    steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 10}
     info_dict["strategy"] = steps_dict
     # write detection result in json format
     with open(os.path.join(TEST_PATH, "request.json"), 'w') as fp:

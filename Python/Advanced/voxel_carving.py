@@ -9,6 +9,7 @@ import numpy as np
 import os
 
 import sys
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dir_path, '../Misc'))
 import meshes
@@ -63,7 +64,6 @@ def voxel_carving(mesh,
                   use_depth=True,
                   surface_method='ccPointCloud',
                   visualization=False):
-
     mesh.compute_vertex_normals()
     camera_sphere = cv3d.io.read_triangle_mesh(camera_path)
 
@@ -135,7 +135,7 @@ def voxel_carving(mesh,
 
     voxel_carving_surface = voxel_surface + voxel_carving
 
-    if (visualization):
+    if visualization:
         print("visualize camera center")
         centers = cv3d.geometry.ccPointCloud()
         centers.set_points(cv3d.utility.Vector3dVector(centers_pts))
