@@ -12,7 +12,7 @@ np.random.seed(42)
 
 
 def pointcloud_generator():
-    yield "cube", cv3d.geometry.ccMesh.create_sphere().\
+    yield "sphere", cv3d.geometry.ccMesh.create_sphere().\
         sample_points_uniformly(int(1e4)), 0.4
 
     mesh = cv3d.geometry.ccMesh.create_torus()
