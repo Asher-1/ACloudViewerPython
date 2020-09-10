@@ -12,9 +12,8 @@ import numpy as np
 from tqdm import tqdm
 
 sys.path.append("..")
-from SemanticSegmentationSystem.help_utils import file_processing
 from SemanticSegmentationSystem.run_system import InterfaceTest
-from SemanticSegmentationSystem.help_utils import cloudviewer_utils as tools
+from SemanticSegmentationSystem.help_utils import file_processing
 
 
 def read_img_base64(p):
