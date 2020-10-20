@@ -22,6 +22,8 @@ class ModelTester:
         if restore_snap is not None:
             self.saver.restore(self.sess, restore_snap)
             self.log_out.info("Model restored from " + restore_snap)
+        else:
+            assert False, "must specify model path..."
 
     def inference(self, model, dataset, use_votes=False, num_votes=100):
         t1 = time.time()

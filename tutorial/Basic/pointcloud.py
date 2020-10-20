@@ -8,11 +8,23 @@ import numpy as np
 import cloudViewer as cv3d
 
 if __name__ == "__main__":
-
+    cv3d.utility.set_verbosity_level(cv3d.utility.Debug)
     print("Load a ply point cloud, print it, and render it")
     pcd = cv3d.io.read_point_cloud("../../TestData/fragment.ply")
     print(pcd)
+    print(pcd.size())
+    print(pcd.has_points())
+    print(pcd.has_normals())
+    print(pcd.has_colors())
     print(np.asarray(pcd.get_points()))
+    cv3d.visualization.draw_geometries([pcd])
+
+    pcd.set_temp_color([0, 0, 1])
+    pcd.set_opacity(0.5)
+    pcd.show_colors(True)
+    print(pcd.get_opacity())
+    print(pcd.get_temp_color())
+    print(pcd.is_color_overriden())
     cv3d.visualization.draw_geometries([pcd])
 
     print("Downsample the point cloud with a voxel of 0.05")

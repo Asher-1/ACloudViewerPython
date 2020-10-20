@@ -1,21 +1,25 @@
 import os
 import time
 import math
+import json
 import random
 import logging
 import colorsys
+import traceback
 import numpy as np
 import pandas as pd
 import multiprocessing
+from os.path import join
 import cloudViewer as cv3d
 from enum import Enum, unique
 from queue import Queue, Empty
-from os.path import join
 
 from . import file_processing
 from .helper_ply import read_ply
 from .opencv import initialize_opencv
 from .timer_utils.timer_wrapper import timer_wrapper
+from ..help_utils.logger_utils import logger
+from ..configs.label_name_dict.label_dict import LABEL_NAME_MAP
 
 
 @unique
@@ -24,6 +28,136 @@ class VerbosityLevel(Enum):
     Error = 1
     Info = 2
     Warning = 3
+
+
+class Segmentation:
+    @staticmethod
+    def euclidean_cluster_segmentation(pc, indices, voxel_size=0.02, min_points=300, top_k=3):
+        debug = False
+        point_cloud = Utility.array_to_cloud(pc[indices])
+        cloud_resolution = point_cloud.compute_resolution()
+        logger.info("cloud resolution: {}".format(cloud_resolution))
+        voxel_size = cloud_resolution * 3
+        if debug:
+            logger.info("voxel size: {}".format(voxel_size))
+        reserve_indices = None
+        point_cloud, _, reserve_indices = \
+            Utility.voxel_sampling_trace(input_data=point_cloud,
+                                         voxel_size=voxel_size,
+                                         approximate_class=False)
+        if debug:
+            Plot.draw_geometries([point_cloud], window_name="voxel down-sampling")
+        # point_cloud, reserve_indices = point_cloud.remove_statistical_outlier(30, 1)
+        # compute point cloud_array resolution and get eps
+        cloud_resolution = point_cloud.compute_resolution()
+        eps = cloud_resolution * 40
+        logger.info("cluster dbscan eps: {}".format(eps))
+        start = time.time()
+        # Cluster PointCloud using the DBSCAN algorithm
+        labels = np.asarray(point_cloud.cluster_dbscan(eps=eps, min_points=min_points, print_progress=False))
+        logger.info("DBSCAN Algorithm [{} cluster], time cost: {} s".format(labels.max() + 1, (time.time() - start)))
+        # get cluster indices by given top k value according to points number of each cluster
+        top_k_cluster_indices = Utility.get_clusters_indices_top_k(labels, top_k=top_k, ignore_negative=True)
+
+        if reserve_indices is None:
+            seg_instances = Utility.map_indices(top_k_cluster_indices, indices)
+        else:
+            seg_instances = Utility.map_indices(top_k_cluster_indices, np.asarray(reserve_indices), indices)
+        return seg_instances
+
+    @staticmethod
+    def ransac_segmentation(pc, indices, classification="", min_radius=0.001, max_radius=1.0,
+                            support_points=300, probability=0.75):
+        point_cloud = Utility.array_to_cloud(pc[indices])
+        cloud_resolution = point_cloud.compute_resolution()
+        logger.info("cloud resolution: {}".format(cloud_resolution))
+        voxel_size = cloud_resolution
+        reserve_indices = None
+        point_cloud, _, reserve_indices = \
+            Utility.voxel_sampling_trace(input_data=point_cloud,
+                                         voxel_size=voxel_size,
+                                         approximate_class=False)
+
+        aabox = point_cloud.get_axis_aligned_bounding_box()
+        scale = aabox.get_max_box_dim()
+        enabled_list = list()
+        if classification == "" or classification in [LABEL_NAME_MAP[9], LABEL_NAME_MAP[10], LABEL_NAME_MAP[11],
+                                                      LABEL_NAME_MAP[12], LABEL_NAME_MAP[13], LABEL_NAME_MAP[16]]:
+            enabled_list.append(cv3d.geometry.RansacParams.Cylinder)
+            detection_mode = "Cylinder"
+        elif classification in [LABEL_NAME_MAP[1], LABEL_NAME_MAP[2]]:
+            enabled_list.append(cv3d.geometry.RansacParams.Plane)
+            detection_mode = "Plane"
+        else:
+            enabled_list.append(cv3d.geometry.RansacParams.Cylinder)
+            enabled_list.append(cv3d.geometry.RansacParams.Plane)
+            enabled_list.append(cv3d.geometry.RansacParams.Sphere)
+            detection_mode = "Mixed"
+
+        logger.info("Start {} Ransac Algorithm!".format(detection_mode))
+        # set ransac parameters
+        ransac_param = cv3d.geometry.RansacParams(scale=scale)
+        ransac_param.prim_enabled_list = enabled_list
+        ransac_param.probability = probability
+        ransac_param.random_color = False
+        ransac_param.bit_map_epsilon *= 1
+        ransac_param.max_normal_deviation_deg = 25
+        ransac_param.support_points = support_points
+        ransac_param.min_radius = min_radius
+        ransac_param.max_radius = max_radius
+
+        try:
+            ransac_result = point_cloud.execute_ransac(params=ransac_param, print_progress=True)
+            logger.info("detect shape instances number: {}".format(len(ransac_result)))
+        except Exception as e:
+            logger.warning(traceback.format_exc())
+            return None
+
+        debug = False
+        indices_result = []
+        for res in ransac_result:
+            prim = res.primitive
+            if debug:
+                instance = point_cloud.select_by_index(res.indices)
+                Plot.draw_geometries([instance, prim])
+            if prim.is_kind_of(cv3d.geometry.ccObject.CYLINDER):
+                cylinder = cv3d.geometry.ToCylinder(prim)
+                cylinder_radius = cylinder.get_bottom_radius()
+                if classification == LABEL_NAME_MAP[9]:  # Utility-Pole
+                    if cylinder_radius < 0.08 or cylinder_radius > 0.4:
+                        continue
+                elif classification == LABEL_NAME_MAP[13]:  # Stick
+                    if cylinder_radius < 0.01 or cylinder_radius > 1:
+                        continue
+                elif classification == LABEL_NAME_MAP[10]:  # Insulator
+                    if cylinder_radius < 0.01 or cylinder_radius > 0.5:
+                        continue
+                elif classification == LABEL_NAME_MAP[11]:  # Electrical-Wire
+                    pass
+                    # if cylinder_radius < 0.001 or cylinder_radius > 10:
+                    #     continue
+            elif prim.is_kind_of(cv3d.geometry.ccObject.PLANE):
+                plane = cv3d.geometry.ToPlane(prim)
+                plane_area = plane.get_height() * plane.get_height()
+                if plane_area < 0.1:
+                    continue
+            elif prim.is_kind_of(cv3d.geometry.ccObject.SPHERE):
+                sphere = cv3d.geometry.ToSphere(prim)
+                sphere_radius = sphere.get_radius()
+                if sphere_radius < 0.1:
+                    continue
+            indices_result.append(np.asarray(res.indices))
+
+        top_k = 10
+        if top_k is not None and top_k <= len(indices_result):
+            top_k_cluster_indices = indices_result[:top_k]
+        else:
+            top_k_cluster_indices = indices_result
+        if reserve_indices is None:
+            seg_instances = Utility.map_indices(top_k_cluster_indices, indices)
+        else:
+            seg_instances = Utility.map_indices(top_k_cluster_indices, np.asarray(reserve_indices), indices)
+        return seg_instances
 
 
 class Utility:
@@ -52,20 +186,45 @@ class Utility:
 
     @staticmethod
     @timer_wrapper
-    def voxel_sampling(points, features=None, grid_size_scale=2):
-        cloud = cv3d.geometry.ccPointCloud()
-        cloud.set_points(cv3d.utility.Vector3dVector(points))
-        if features is not None:
-            if np.max(features) > 1:
-                cloud.set_colors(cv3d.utility.Vector3dVector(features / 255.))
-            else:
-                cloud.set_colors(cv3d.utility.Vector3dVector(features))
-        grid_size = cloud.compute_resolution() * grid_size_scale
-        down_cloud = cloud.voxel_down_sample(grid_size)
-        if features is not None:
+    def voxel_sampling(input_data, voxel_size):
+        if isinstance(input_data, np.ndarray):
+            cloud = Utility.array_to_cloud(input_data)
+        elif isinstance(input_data, cv3d.geometry.ccPointCloud):
+            cloud = input_data
+        else:
+            assert False, "unsupported input type {}".format(type(input_data))
+
+        down_cloud = cloud.voxel_down_sample(voxel_size=voxel_size)
+
+        if down_cloud.size() == cloud.size():
+            resolution = cloud.compute_resolution()
+            down_cloud = cloud.voxel_down_sample(resolution)
+            logger.info(
+                "invalid given voxel size {}, will try cloud resolution {} again!".format(voxel_size, resolution))
+
+        if down_cloud.has_colors():
             return np.asarray(down_cloud.get_points()), np.asarray(down_cloud.get_colors())
         else:
             return np.asarray(down_cloud.get_points())
+
+    @staticmethod
+    @timer_wrapper
+    def voxel_sampling_trace(input_data, voxel_size, approximate_class=False):
+        if isinstance(input_data, np.ndarray):
+            cloud = Utility.array_to_cloud(input_data)
+        elif isinstance(input_data, cv3d.geometry.ccPointCloud):
+            cloud = input_data
+        else:
+            assert False, "unsupported input type {}".format(type(input_data))
+
+        box = cloud.get_axis_aligned_bounding_box()
+        point_cloud, cubic_id, reserve_indices = \
+            cloud.voxel_down_sample_and_trace(voxel_size=voxel_size,
+                                              min_bound=box.get_min_bound(),
+                                              max_bound=box.get_max_bound(),
+                                              approximate_class=approximate_class)
+        map_indices = [np.array(indices) for indices in reserve_indices]
+        return point_cloud, np.asarray(cubic_id), np.asarray(map_indices)
 
     @staticmethod
     def numpy_to_vector3d(array):
@@ -115,7 +274,7 @@ class Utility:
         unique_labels, unique_label_indices = \
             Utility.get_unique_label_indices(array, is_sort=True, reverse=True)
         if ignore_negative:
-            unique_label_indices = unique_label_indices[np.where(unique_labels > 0)]
+            unique_label_indices = unique_label_indices[np.where(unique_labels >= 0)]
         if top_k is not None and top_k <= unique_label_indices.shape[0]:
             return unique_label_indices[:top_k, ...]
         else:
@@ -124,7 +283,9 @@ class Utility:
     @staticmethod
     def map_indices(input_indices, reference_indices, base_indices=None):
         return [reference_indices[indices] if base_indices is None
-                else base_indices[reference_indices[indices]] for indices in input_indices]
+                else base_indices[np.concatenate(reference_indices[indices], axis=0)
+        if reference_indices[indices].dtype == np.object
+        else reference_indices[indices]] for indices in input_indices]
 
     @staticmethod
     def get_bounding_boxes_by_clouds(clouds, color):
@@ -179,7 +340,7 @@ class Utility:
             for t in range(s + 1, eid):
                 # odometry
                 if t == s + 1:
-                    print(
+                    logger.info(
                         "Fragment %03d / %03d :: RGBD matching between frame : %d and %d"
                         % (fragment_id, n_fragments - 1, s, t))
                     [success, trans,
@@ -199,7 +360,7 @@ class Utility:
                 # keyframe loop closure
                 if s % config['n_keyframes_per_n_frame'] == 0 \
                         and t % config['n_keyframes_per_n_frame'] == 0:
-                    print(
+                    logger.info(
                         "Fragment %03d / %03d :: RGBD matching between frame : %d and %d"
                         % (fragment_id, n_fragments - 1, s, t))
                     [success, trans,
@@ -228,7 +389,7 @@ class Utility:
             color_type=cv3d.integration.TSDFVolumeColorType.RGB8)
         for i in range(len(pose_graph.nodes)):
             i_abs = fragment_id * config['n_frames_per_fragment'] + i
-            print(
+            logger.info(
                 "Fragment %03d / %03d :: integrate rgbd frame %d (%d of %d)." %
                 (fragment_id, n_fragments - 1, i_abs, i + 1, len(pose_graph.nodes)))
             rgbd = IO.read_rgbd_image(color_files[i_abs], depth_files[i_abs], False, config)
@@ -249,6 +410,19 @@ class IO:
         if len(pc_colors) == 0:
             pc_colors.reshape(pc_xyz.shape)
         return np.hstack([pc_xyz, pc_colors]), point_cloud
+
+    @staticmethod
+    def read_clouds(file):
+        base_name, cloud_extent = os.path.splitext(file)
+        if cloud_extent == '.xyz' or cloud_extent == '.txt':
+            pc_array = IO.load_pc_semantic3d(file, header=None, delim_whitespace=True)
+            point_cloud = Utility.array_to_cloud(pc_array)
+            if point_cloud.has_colors() and np.max(pc_array[:, 3:6]) > 1:
+                pc_array[:, 3:6] = pc_array[:, 3:6] / 255.
+        else:
+            pc_array, point_cloud = IO.read_point_cloud(file)
+
+        return pc_array, point_cloud
 
     @staticmethod
     def write_point_cloud(filename, input_data, write_ascii=False, compressed=False):
@@ -330,6 +504,16 @@ class IO:
         points = scan[:, 0:3]  # get xyz
         return points
 
+    @staticmethod
+    def write_jsons(json_file, result, indent=None):
+        with open(json_file, 'w') as fp:
+            fp.write(json.dumps(result, indent=indent, ensure_ascii=False))
+
+    @staticmethod
+    def read_jsons(json_file):
+        with open(json_file, 'r', encoding='utf8') as fp:
+            return json.load(fp)
+
 
 class KDTree:
     def __init__(self, input_data, leaf_size=15, reorder=True):
@@ -367,9 +551,9 @@ class KDTree:
             >>> X = np.random.random((10, 3))  # 10 points in 3 dimensions
             >>> tree = KDTree(X, leaf_size=2)              # doctest: +SKIP
             >>> dist, ind = tree.query(X[:1], k=3)                # doctest: +SKIP
-            >>> print(ind)  # indices of 3 closest neighbors
+            >>> logger.info(ind)  # indices of 3 closest neighbors
             [0 3 1]
-            >>> print(dist)  # distances to 3 closest neighbors
+            >>> logger.info(dist)  # distances to 3 closest neighbors
             [ 0.          0.19662693  0.29473397]
 
         Pickle and Unpickle a tree.  Note that the state of the tree is saved in the
@@ -383,9 +567,9 @@ class KDTree:
             >>> s = pickle.dumps(tree)                     # doctest: +SKIP
             >>> tree_copy = pickle.loads(s)                # doctest: +SKIP
             >>> dist, ind = tree_copy.query(X[:1], k=3)     # doctest: +SKIP
-            >>> print(ind)  # indices of 3 closest neighbors
+            >>> logger.info(ind)  # indices of 3 closest neighbors
             [0 3 1]
-            >>> print(dist)  # distances to 3 closest neighbors
+            >>> logger.info(dist)  # distances to 3 closest neighbors
             [ 0.          0.19662693  0.29473397]
 
         Query for neighbors within a given radius
@@ -394,10 +578,10 @@ class KDTree:
             >>> np.random.seed(0)
             >>> X = np.random.random((10, 3))  # 10 points in 3 dimensions
             >>> tree = KDTree(X, leaf_size=2)     # doctest: +SKIP
-            >>> print(tree.query_radius(X[:1], r=0.3, count_only=True))
+            >>> logger.info(tree.query_radius(X[:1], r=0.3, count_only=True))
             3
             >>> ind = tree.query_radius(X[:1], r=0.3)  # doctest: +SKIP
-            >>> print(ind)  # indices of neighbors within distance 0.3
+            >>> logger.info(ind)  # indices of neighbors within distance 0.3
             [3 0 1]
         """
         if isinstance(input_data, np.ndarray):
@@ -453,7 +637,7 @@ class KDTree:
         [dummy, query_indices, distance] = self.tree.query_vector_3d(cv3d.utility.Vector3dVector(array),
                                                                      cv3d.geometry.KDTreeSearchParamRadius(radius=r))
         if dummy < 0:
-            print("[KDTree.query_radius] query failed!")
+            logger.info("[KDTree.query_radius] query failed!")
 
         if return_distance:
             return np.asarray(distance), np.asarray(query_indices, np.int32)
@@ -463,7 +647,7 @@ class KDTree:
     def query_single(self, array, k=1, return_distance=True):
         [dummy, query_indices, distance] = self.tree.search_knn_vector_3d(array, knn=k)
         if dummy < 0:
-            print("[KDTree.query_single] query failed!")
+            logger.info("[KDTree.query_single] query failed!")
 
         if return_distance:
             return np.asarray(distance), np.asarray(query_indices, np.int32)
@@ -473,7 +657,7 @@ class KDTree:
     def query_single_radius(self, array, r, return_distance=True):
         [dummy, query_indices, distance] = self.tree.search_radius_vector_3d(array, radius=r)
         if dummy < 0:
-            print("[KDTree.query_single_radius] query failed!")
+            logger.info("[KDTree.query_single_radius] query failed!")
 
         if return_distance:
             return np.asarray(distance), np.asarray(query_indices, np.int32)
@@ -504,311 +688,6 @@ class KDTree:
                 neighbor_idx[iter, i, :] = np.asarray(idx)
 
         return neighbor_idx.astype(np.int32)
-
-
-class KNNNeighbors:
-    thread_mode = 'thread'
-    process_mode = 'process'
-    async_mode = 'async'
-    network_mode = 'machine'
-
-    # https://github.com/ferventdesert/multi_yielder
-    class Stop(Exception):
-        "a flag when queue should stop"
-        pass
-
-    class Yielder(object):
-        '''a yield context manager'''
-
-        def __init__(self, dispose):
-            self.dispose = dispose
-
-        def __enter__(self):
-            pass
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            self.dispose()
-
-    @staticmethod
-    def safe_queue_get(queue, is_stop_func=None, timeout=2):
-        while True:
-            if is_stop_func is not None and is_stop_func():
-                return KNNNeighbors.Stop
-            try:
-                data = queue.get(timeout=timeout)
-                return data
-            except:
-                continue
-
-    @staticmethod
-    def safe_queue_put(queue, item, is_stop_func=None, timeout=2):
-        while True:
-            if is_stop_func is not None and is_stop_func():
-                return KNNNeighbors.Stop
-            try:
-                queue.put(item, timeout=timeout)
-                return item
-            except:
-                continue
-
-    @staticmethod
-    def multi_yield(generator, customer_func, mode=thread_mode, worker_count=2, queue_size=10):
-        """
-        :param generator:  a iter object offer task seeds, can be array, generator
-        :param customer_func:  your task func, get seed as parameter and yield result, if no result needed, yield None
-        :param mode: three support mode: thread, gevent, process
-        :param worker_count:
-        :param queue_size:
-        :return: a result generator
-        """
-        workers = []
-
-        vebose = False
-
-        def is_alive(process):
-            if mode == KNNNeighbors.process_mode:
-                return process.is_alive()
-            elif mode == KNNNeighbors.thread_mode:
-                return process.isAlive()
-            return True
-
-        class Stop_Wrapper():
-            def __init__(self):
-                self.stop_flag = False
-                self.workers = []
-
-            def is_stop(self):
-                return self.stop_flag
-
-            def stop(self):
-                self.stop_flag = True
-                for process in self.workers:
-                    if isinstance(process, multiprocessing.Process):
-                        process.terminate()
-
-        stop_wrapper = Stop_Wrapper()
-
-        def _boss(task_generator, task_queue, worker_count):
-            for task in task_generator:
-                item = KNNNeighbors.safe_queue_put(task_queue, task, stop_wrapper.is_stop)
-                if item is KNNNeighbors.Stop:
-                    if vebose:
-                        print('downloader boss stop')
-                    return
-            for i in range(worker_count):
-                task_queue.put(Empty)
-
-            if vebose:
-                print('worker boss finished')
-
-        def _worker(task_queue, result_queue, gene_func):
-            import time
-            try:
-                while not stop_wrapper.is_stop():
-                    if task_queue.empty():
-                        time.sleep(0.01)
-                        continue
-                    task = KNNNeighbors.safe_queue_get(task_queue, stop_wrapper.is_stop)
-                    if not isinstance(task, np.ndarray):
-                        if task == Empty:
-                            result_queue.put(Empty)
-                            break
-                        if task == KNNNeighbors.Stop:
-                            break
-                    for item in gene_func(task):
-                        item = KNNNeighbors.safe_queue_put(result_queue, item, stop_wrapper.is_stop)
-                        if not isinstance(item, np.ndarray):
-                            if item == KNNNeighbors.Stop:
-                                break
-                if vebose:
-                    print('worker worker is stop')
-            except Exception as e:
-                logging.exception(e)
-                if vebose:
-                    print('worker exception, quit')
-
-        def factory(func, args=None, name='task'):
-            if args is None:
-                args = ()
-            if mode == KNNNeighbors.process_mode:
-                return multiprocessing.Process(name=name, target=func, args=args)
-            if mode == KNNNeighbors.thread_mode:
-                import threading
-                t = threading.Thread(name=name, target=func, args=args)
-                t.daemon = True
-                return t
-            if mode == KNNNeighbors.async_mode:
-                import gevent
-                return gevent.spawn(func, *args)
-
-        def queue_factory(size):
-            if mode == KNNNeighbors.process_mode:
-                return multiprocessing.Queue(size)
-            elif mode == KNNNeighbors.thread_mode:
-                return Queue(size)
-            elif mode == KNNNeighbors.async_mode:
-                from gevent import queue
-                return queue.Queue(size)
-
-        def should_stop():
-            if not any([r for r in workers if is_alive(r)]):
-                return True
-            return stop_wrapper.is_stop()
-
-        with KNNNeighbors.Yielder(stop_wrapper.stop):
-            result_queue = queue_factory(queue_size)
-            task_queue = queue_factory(queue_size)
-
-            main = factory(_boss, args=(generator, task_queue, worker_count), name='_boss')
-            for process_id in range(0, worker_count):
-                name = 'worker_%s' % (process_id)
-                p = factory(_worker, args=(task_queue, result_queue, customer_func), name=name)
-                workers.append(p)
-            main.start()
-            stop_wrapper.workers = workers[:]
-            stop_wrapper.workers.append(main)
-            for r in workers:
-                r.start()
-            count = 0
-            while not should_stop():
-                data = KNNNeighbors.safe_queue_get(result_queue, should_stop)
-                if data is Empty:
-                    count += 1
-                    if count == worker_count:
-                        break
-                    continue
-                if data is KNNNeighbors.Stop:
-                    break
-                else:
-                    yield data
-
-    @staticmethod
-    @timer_wrapper
-    def multiply_knn_search(support_pts, query_pts, k):
-        """
-        :param support_pts: points you have, B*N1*3
-        :param query_pts: points you want to know the neighbour index, B*N2*3
-        :param k: Number of neighbours in knn search
-        :return: neighbor_idx: neighboring points indexes, B*N2*k
-        """
-
-        assert len(support_pts.shape) == 3
-        assert len(query_pts.shape) == 3
-
-        batch_number = query_pts.shape[0]
-        batch_points = query_pts.shape[1]
-        neighbor_idx = np.zeros((batch_number, batch_points, k))
-
-        def task(data):
-            batch_data = data[0]
-            batch_query = data[1]
-            indices = np.zeros((batch_points, k))
-            kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(batch_data, 0, 1))
-            for j, pts in enumerate(batch_query):
-                [dummy, idx, _] = kd_tree.search_knn_vector_3d(pts, k)
-                indices[j, :] = np.asarray(idx)
-            yield indices
-
-        i = 0
-        dat = zip(support_pts, query_pts)
-        for item in KNNNeighbors.multi_yield(dat, task, KNNNeighbors.thread_mode, multiprocessing.cpu_count()):
-            neighbor_idx[i, :, :] = item
-            i += 1
-        return neighbor_idx.astype(np.int32)
-
-    @staticmethod
-    @timer_wrapper
-    def single_knn_search(support_pts, query_pts, k):
-        """
-        :param support_pts: points you have, B*N1*3
-        :param query_pts: points you want to know the neighbour index, B*N2*3
-        :param k: Number of neighbours in knn search
-        :return: neighbor_idx: neighboring points indexes, B*N2*k
-        """
-
-        assert len(support_pts.shape) == 3
-        assert len(query_pts.shape) == 3
-
-        batch_number = query_pts.shape[0]
-        batch_size = query_pts.shape[1]
-        neighbor_idx = np.zeros((batch_number, batch_size, k))
-
-        for iter in range(batch_number):
-            kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(support_pts[iter], 0, 1))
-            for i, pts in enumerate(query_pts[iter]):
-                [dummy, idx, _] = kd_tree.search_knn_vector_3d(pts, k)
-                neighbor_idx[iter, i, :] = np.asarray(idx)
-
-        return neighbor_idx.astype(np.int32)
-
-    @staticmethod
-    def test():
-        def xprint(x):
-            """
-            mock a long time task
-            """
-            time.sleep(1)
-            yield x * x
-
-        i = 0
-        for item in KNNNeighbors.multi_yield(range(100), xprint, KNNNeighbors.process_mode, 3):
-            print(item)
-            i += 1
-            if i > 10:
-                break
-
-    @staticmethod
-    def test2():
-        TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
-        # extend = '.xyz'
-        extend = '.ply'
-        THREAD_NUMBER = multiprocessing.cpu_count()
-        num_points = 81920
-        K = 16
-
-        fileList = file_processing.get_files_list(TEST_PATH, extend)
-        for file in fileList:
-            if extend == '.ply':
-                pc = IO.read_convert_to_array(file)
-            elif extend == '.xyz':
-                pc = IO.load_pc_semantic3d(file, header=None, delim_whitespace=True)
-            else:
-                continue
-
-        pc = pc[:, :3].astype(np.float32)
-        batch_size = math.floor(pc.shape[0] / num_points)
-        pc = pc[:batch_size * num_points]
-        pc = pc.reshape([batch_size, num_points, 3])
-        pc_query = pc[:, :40000, :]
-
-        # nearest neighbours
-        start = time.time()
-        indexs = KNNNeighbors.single_knn_search(pc, pc_query, k=K)
-        print(time.time() - start)
-        print(indexs)
-
-    @staticmethod
-    def test_kdtree():
-        from sklearn.neighbors import KDTree
-        TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
-        file_list = file_processing.get_files_list(TEST_PATH, ".ply")
-        pc_array, point_cloud = IO.read_point_cloud(file_list[0])
-
-        sub_xyz, sub_colors = Utility.voxel_sampling(
-            pc_array[:, :3].astype(np.float32), pc_array[:, 3:6], grid_size_scale=2)
-        search_tree = KDTree(sub_xyz, leaf_size=40)
-        query_idx = search_tree.query(sub_xyz[:3, :], k=4)[1]
-        sklearn_points = np.asarray(search_tree.data)
-        print(np.sum(np.sum(sklearn_points - sub_xyz)))
-
-        kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(sub_xyz, 0, 1))
-        [dummy, query_indices, _] = kd_tree.query_vector_3d(cv3d.utility.Vector3dVector(sub_xyz[:3, :]),
-                                                            cv3d.geometry.KDTreeSearchParamKNN(knn=4))
-        query_idx_2 = np.asarray(query_indices)
-        cv3d_points = np.asarray(kd_tree.data).reshape([kd_tree.data_rows, kd_tree.data_cols])
-
-        print(np.sum(np.sum(query_idx - query_idx_2)))
-        print(np.sum(np.sum(cv3d_points - sub_xyz)))
 
 
 class Plot:
@@ -878,6 +757,310 @@ class Plot:
         Y_semins = np.concatenate([pc_xyz[:, 0:3], Y_colors], axis=-1)
         Plot.draw_pc(Y_semins)
         return Y_semins
+
+
+class KNNNeighbors:
+    thread_mode = 'thread'
+    process_mode = 'process'
+    async_mode = 'async'
+    network_mode = 'machine'
+
+    # https://github.com/ferventdesert/multi_yielder
+    class Stop(Exception):
+        """a flag when queue should stop"""
+        pass
+
+    class Yielder(object):
+        """a yield context manager"""
+
+        def __init__(self, dispose):
+            self.dispose = dispose
+
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.dispose()
+
+    @staticmethod
+    def safe_queue_get(queue, is_stop_func=None, timeout=2):
+        while True:
+            if is_stop_func is not None and is_stop_func():
+                return KNNNeighbors.Stop
+            try:
+                data = queue.get(timeout=timeout)
+                return data
+            except:
+                continue
+
+    @staticmethod
+    def safe_queue_put(queue, item, is_stop_func=None, timeout=2):
+        while True:
+            if is_stop_func is not None and is_stop_func():
+                return KNNNeighbors.Stop
+            try:
+                queue.put(item, timeout=timeout)
+                return item
+            except Exception as e:
+                print(str(e))
+                continue
+
+    @staticmethod
+    def multi_yield(generator, customer_func, mode=thread_mode, worker_count=2, queue_size=10):
+        """
+        :param generator:  a iter object offer task seeds, can be array, generator
+        :param customer_func:  your task func, get seed as parameter and yield result, if no result needed, yield None
+        :param mode: three support mode: thread, gevent, process
+        :param worker_count:
+        :param queue_size:
+        :return: a result generator
+        """
+        workers = []
+
+        vebose = False
+
+        def is_alive(process):
+            if mode == KNNNeighbors.process_mode:
+                return process.is_alive()
+            elif mode == KNNNeighbors.thread_mode:
+                return process.isAlive()
+            return True
+
+        class Stop_Wrapper():
+            def __init__(self):
+                self.stop_flag = False
+                self.workers = []
+
+            def is_stop(self):
+                return self.stop_flag
+
+            def stop(self):
+                self.stop_flag = True
+                for process in self.workers:
+                    if isinstance(process, multiprocessing.Process):
+                        process.terminate()
+
+        stop_wrapper = Stop_Wrapper()
+
+        def _boss(task_generator, task_queue, worker_count):
+            for task in task_generator:
+                item = KNNNeighbors.safe_queue_put(task_queue, task, stop_wrapper.is_stop)
+                if item is KNNNeighbors.Stop:
+                    if vebose:
+                        logger.info('downloader boss stop')
+                    return
+            for i in range(worker_count):
+                task_queue.put(Empty)
+
+            if vebose:
+                logger.info('worker boss finished')
+
+        def _worker(task_queue, result_queue, gene_func):
+            import time
+            try:
+                while not stop_wrapper.is_stop():
+                    if task_queue.empty():
+                        time.sleep(0.01)
+                        continue
+                    task = KNNNeighbors.safe_queue_get(task_queue, stop_wrapper.is_stop)
+                    if not isinstance(task, np.ndarray):
+                        if task == Empty:
+                            result_queue.put(Empty)
+                            break
+                        if task == KNNNeighbors.Stop:
+                            break
+                    for item in gene_func(task):
+                        item = KNNNeighbors.safe_queue_put(result_queue, item, stop_wrapper.is_stop)
+                        if not isinstance(item, np.ndarray):
+                            if item == KNNNeighbors.Stop:
+                                break
+                if vebose:
+                    logger.info('worker worker is stop')
+            except Exception as e:
+                logging.exception(e)
+                if vebose:
+                    logger.info('worker exception, quit')
+
+        def factory(func, args=None, name='task'):
+            if args is None:
+                args = ()
+            if mode == KNNNeighbors.process_mode:
+                return multiprocessing.Process(name=name, target=func, args=args)
+            if mode == KNNNeighbors.thread_mode:
+                import threading
+                t = threading.Thread(name=name, target=func, args=args)
+                t.daemon = True
+                return t
+            if mode == KNNNeighbors.async_mode:
+                import gevent
+                return gevent.spawn(func, *args)
+
+        def queue_factory(size):
+            if mode == KNNNeighbors.process_mode:
+                return multiprocessing.Queue(size)
+            elif mode == KNNNeighbors.thread_mode:
+                return Queue(size)
+            elif mode == KNNNeighbors.async_mode:
+                from gevent import queue
+                return queue.Queue(size)
+
+        def should_stop():
+            if not any([r for r in workers if is_alive(r)]):
+                return True
+            return stop_wrapper.is_stop()
+
+        with KNNNeighbors.Yielder(stop_wrapper.stop):
+            result_queue = queue_factory(queue_size)
+            task_queue = queue_factory(queue_size)
+
+            main = factory(_boss, args=(generator, task_queue, worker_count), name='_boss')
+            for process_id in range(0, worker_count):
+                name = 'worker_%s' % (process_id)
+                p = factory(_worker, args=(task_queue, result_queue, customer_func), name=name)
+                workers.append(p)
+            main.start()
+            stop_wrapper.workers = workers[:]
+            stop_wrapper.workers.append(main)
+            for r in workers:
+                r.start()
+            count = 0
+            while not should_stop():
+                data = KNNNeighbors.safe_queue_get(result_queue, should_stop)
+                if data is Empty:
+                    count += 1
+                    if count == worker_count:
+                        break
+                    continue
+                if data is KNNNeighbors.Stop:
+                    break
+                else:
+                    yield data
+
+    @staticmethod
+    def multiply_knn_search(support_pts, query_pts, k):
+        """
+        :param support_pts: points you have, B*N1*3
+        :param query_pts: points you want to know the neighbour index, B*N2*3
+        :param k: Number of neighbours in knn search
+        :return: neighbor_idx: neighboring points indexes, B*N2*k
+        """
+
+        assert len(support_pts.shape) == 3
+        assert len(query_pts.shape) == 3
+
+        batch_number = query_pts.shape[0]
+        batch_points = query_pts.shape[1]
+        neighbor_idx = np.zeros((batch_number, batch_points, k))
+
+        def task(data):
+            batch_data = data[0]
+            batch_query = data[1]
+            indices = np.zeros((batch_points, k))
+            kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(batch_data, 0, 1))
+            for j, pts in enumerate(batch_query):
+                [dummy, idx, _] = kd_tree.search_knn_vector_3d(pts, k)
+                indices[j, :] = np.asarray(idx)
+            yield indices
+
+        i = 0
+        dat = zip(support_pts, query_pts)
+        for item in KNNNeighbors.multi_yield(dat, task, KNNNeighbors.thread_mode, multiprocessing.cpu_count()):
+            neighbor_idx[i, :, :] = item
+            i += 1
+        return neighbor_idx.astype(np.int32)
+
+    @staticmethod
+    def single_knn_search(support_pts, query_pts, k):
+        """
+        :param support_pts: points you have, B*N1*3
+        :param query_pts: points you want to know the neighbour index, B*N2*3
+        :param k: Number of neighbours in knn search
+        :return: neighbor_idx: neighboring points indexes, B*N2*k
+        """
+
+        assert len(support_pts.shape) == 3
+        assert len(query_pts.shape) == 3
+
+        batch_number = query_pts.shape[0]
+        batch_size = query_pts.shape[1]
+        neighbor_idx = np.zeros((batch_number, batch_size, k))
+
+        for iter in range(batch_number):
+            kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(support_pts[iter], 0, 1))
+            for i, pts in enumerate(query_pts[iter]):
+                [dummy, idx, _] = kd_tree.search_knn_vector_3d(pts, k)
+                neighbor_idx[iter, i, :] = np.asarray(idx)
+
+        return neighbor_idx.astype(np.int32)
+
+    @staticmethod
+    def test():
+        def xprint(x):
+            """
+            mock a long time task
+            """
+            time.sleep(1)
+            yield x * x
+
+        i = 0
+        for item in KNNNeighbors.multi_yield(range(100), xprint, KNNNeighbors.process_mode, 3):
+            logger.info(item)
+            i += 1
+            if i > 10:
+                break
+
+    @staticmethod
+    def test2():
+        TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
+        # extend = '.xyz'
+        extend = '.ply'
+        THREAD_NUMBER = multiprocessing.cpu_count()
+        num_points = 81920
+        K = 16
+
+        fileList = file_processing.get_files_list(TEST_PATH, extend)
+        for file in fileList:
+            if extend == '.ply':
+                pc = IO.read_convert_to_array(file)
+            elif extend == '.xyz':
+                pc = IO.load_pc_semantic3d(file, header=None, delim_whitespace=True)
+            else:
+                continue
+
+        pc = pc[:, :3].astype(np.float32)
+        batch_size = math.floor(pc.shape[0] / num_points)
+        pc = pc[:batch_size * num_points]
+        pc = pc.reshape([batch_size, num_points, 3])
+        pc_query = pc[:, :40000, :]
+
+        # nearest neighbours
+        start = time.time()
+        indexs = KNNNeighbors.single_knn_search(pc, pc_query, k=K)
+        logger.info(time.time() - start)
+        logger.info(indexs)
+
+    @staticmethod
+    def test_kdtree():
+        from sklearn.neighbors import KDTree
+        TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
+        file_list = file_processing.get_files_list(TEST_PATH, ".ply")
+        pc_array, point_cloud = IO.read_point_cloud(file_list[0])
+
+        sub_xyz, sub_colors = Utility.voxel_sampling(
+            pc_array[:, :3].astype(np.float32), pc_array[:, 3:6], grid_size_scale=2)
+        search_tree = KDTree(sub_xyz, leaf_size=40)
+        query_idx = search_tree.query(sub_xyz[:3, :], k=4)[1]
+        sklearn_points = np.asarray(search_tree.data)
+        logger.info(np.sum(np.sum(sklearn_points - sub_xyz)))
+
+        kd_tree = cv3d.geometry.KDTreeFlann(np.swapaxes(sub_xyz, 0, 1))
+        [dummy, query_indices, _] = kd_tree.query_vector_3d(cv3d.utility.Vector3dVector(sub_xyz[:3, :]),
+                                                            cv3d.geometry.KDTreeSearchParamKNN(knn=4))
+        query_idx_2 = np.asarray(query_indices)
+        cv3d_points = np.asarray(kd_tree.data).reshape([kd_tree.data_rows, kd_tree.data_cols])
+
+        logger.info(np.sum(np.sum(query_idx - query_idx_2)))
+        logger.info(np.sum(np.sum(cv3d_points - sub_xyz)))
 
 
 if __name__ == '__main__':

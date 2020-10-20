@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 @author: asher
-后台通过接口调用服务，获取OCR识别结果
 """
 import os
 import sys
 import json
 import base64
 import requests
-import numpy as np
-from tqdm import tqdm
 
 sys.path.append("..")
 from SemanticSegmentationSystem.run_system import InterfaceTest
@@ -53,12 +50,11 @@ def post(detection_infos):
         InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
 
 
-if __name__ == '__main__':
-    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
-    # file_list = file_processing.get_files_list(TEST_PATH, ".pcd")
-    # file_list += file_processing.get_files_list(TEST_PATH, ".ply")
+def generate_request_jsons():
+    FILE_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    # file_list = file_processing.get_files_list(FILE_PATH, ".pcd")
+    # file_list += file_processing.get_files_list(FILE_PATH, ".ply")
     file_list = ["scene2_a.pcd", "scene2_b.pcd", "scene2_c.pcd"]
-
     info_dict = dict()
     info_dict["files"] = file_list
     steps_dict = dict()
@@ -71,6 +67,15 @@ if __name__ == '__main__':
     steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 10}
     info_dict["strategy"] = steps_dict
     # write detection result in json format
-    with open(os.path.join(TEST_PATH, "request.json"), 'w') as fp:
+    with open(os.path.join(FILE_PATH, "request.json"), 'w') as fp:
         fp.write(json.dumps(info_dict, indent=4, ensure_ascii=False))
-    post([info_dict])
+
+
+if __name__ == '__main__':
+    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    CUR_PATH = os.path.dirname(os.path.abspath(__file__))
+    task = "full_request.json"
+    request_json_path = os.path.join(CUR_PATH, "request_jsons", task)
+    with open(request_json_path, 'r', encoding='utf8') as fp:
+        info_dict = json.load(fp)
+        post([info_dict])

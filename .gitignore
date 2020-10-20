@@ -131,3 +131,5 @@ CCCoreLibExport.h
 /CMakeSettings.json
 #VS2019 default cmake build & install paths
 /out/
+CloudViewerAISystem/log/*
+CloudViewerAISystem/SemanticSegmentationSystem/log/*

@@ -1,4 +1,4 @@
-[2020-07-29 18:53:27,146 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 09:01:47,108 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -14,19 +14,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "826.921875 MB",
-                             "free": "10437.078125 MB"
+                             "used": "1049.1328125 MB",
+                             "free": "10214.8671875 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "826.921875 MB",
-                             "free": "10437.078125 MB"
+                             "used": "1049.1328125 MB",
+                             "free": "10214.8671875 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -35,8 +37,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 18:53:27,198 @run_system.py:212] INFO: scene point number (0, 6)
-[2020-07-29 18:53:52,141 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 09:01:47,110 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 09:01:47,140 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 09:01:51,924 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -52,19 +55,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "827.046875 MB",
-                             "free": "10436.953125 MB"
+                             "used": "1049.1328125 MB",
+                             "free": "10214.8671875 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "827.046875 MB",
-                             "free": "10436.953125 MB"
+                             "used": "1049.1328125 MB",
+                             "free": "10214.8671875 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -73,7 +78,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 18:55:03,263 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 09:01:51,924 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 09:01:51,951 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 09:03:56,116 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -89,19 +96,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "830.796875 MB",
-                             "free": "10433.203125 MB"
+                             "used": "1050.37890625 MB",
+                             "free": "10213.62109375 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "830.796875 MB",
-                             "free": "10433.203125 MB"
+                             "used": "1050.37890625 MB",
+                             "free": "10213.62109375 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -110,11 +119,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 18:55:03,263 @ai_point_cloud.py:55] ERROR: invalid parameters: no targets found!
-[2020-07-29 18:55:04,245 @ai_point_cloud.py:154] INFO: [Warning] Scanning-Artifacts tool small number of points, ignore it...
-[2020-07-29 18:55:35,015 @run_system.py:212] INFO: scene point number (5286147, 6)
-[2020-07-29 18:55:45,128 @run_system.py:212] INFO: scene point number (0, 6)
-[2020-07-29 18:57:40,969 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 09:03:56,117 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 09:03:56,146 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:29:33,637 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -130,19 +137,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "858.671875 MB",
-                             "free": "10405.328125 MB"
+                             "used": "1183.5546875 MB",
+                             "free": "10080.4453125 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "858.671875 MB",
-                             "free": "10405.328125 MB"
+                             "used": "1183.5546875 MB",
+                             "free": "10080.4453125 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -151,7 +160,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:01:53,775 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:29:33,637 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:29:33,665 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:29:38,420 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -167,19 +178,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "869.234375 MB",
-                             "free": "10394.765625 MB"
+                             "used": "1183.5546875 MB",
+                             "free": "10080.4453125 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "869.234375 MB",
-                             "free": "10394.765625 MB"
+                             "used": "1183.5546875 MB",
+                             "free": "10080.4453125 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -188,7 +201,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:05:35,082 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:29:38,420 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:29:38,449 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:33:27,508 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -204,19 +219,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "837.984375 MB",
-                             "free": "10426.015625 MB"
+                             "used": "1184.8671875 MB",
+                             "free": "10079.1328125 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "837.984375 MB",
-                             "free": "10426.015625 MB"
+                             "used": "1184.8671875 MB",
+                             "free": "10079.1328125 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -225,7 +242,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:08:32,737 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:33:27,508 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:33:27,536 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:33:32,204 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -241,19 +260,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "849.640625 MB",
-                             "free": "10414.359375 MB"
+                             "used": "1184.8671875 MB",
+                             "free": "10079.1328125 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "849.640625 MB",
-                             "free": "10414.359375 MB"
+                             "used": "1184.8671875 MB",
+                             "free": "10079.1328125 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -262,7 +283,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:08:53,493 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:33:32,205 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:33:32,233 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:53:38,900 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -278,19 +301,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "849.890625 MB",
-                             "free": "10414.109375 MB"
+                             "used": "1081.625 MB",
+                             "free": "10182.375 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "849.890625 MB",
-                             "free": "10414.109375 MB"
+                             "used": "1081.625 MB",
+                             "free": "10182.375 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -299,16 +324,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:08:58,037 @base_detector.py:132] INFO: input array data shape (8556161, 6)
-[2020-07-29 19:08:58,037 @inference.py:30] INFO: need_sample: True; use_votes: false;
-[2020-07-29 19:08:58,037 @inference.py:76] INFO: GPU Total Count： 2
-[2020-07-29 19:08:58,070 @inference.py:36] INFO: using GPU index 0
-[2020-07-29 19:08:58,071 @inference.py:38] INFO: updated test batch size 11
-[2020-07-29 19:08:58,071 @DataSet.py:77] INFO: set input clouds
-[2020-07-29 19:09:08,909 @DataSet.py:94] INFO: down sampling from 8556161 to 2718264
-[2020-07-29 19:09:08,910 @DataSet.py:106] INFO: start KDTree construction (leaf_size : 50)
-[2020-07-29 19:09:09,792 @DataSet.py:112] INFO: KDTree construction time cost : 0.8826472759246826 s
-[2020-07-29 19:10:42,200 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:53:38,901 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:53:38,929 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 10:53:43,661 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -324,19 +342,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "828.453125 MB",
-                             "free": "10435.546875 MB"
+                             "used": "1081.625 MB",
+                             "free": "10182.375 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "828.453125 MB",
-                             "free": "10435.546875 MB"
+                             "used": "1081.625 MB",
+                             "free": "10182.375 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -345,43 +365,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-29 19:10:42,919 @base_detector.py:132] INFO: input array data shape (4993345, 6)
-[2020-07-29 19:10:42,919 @inference.py:30] INFO: need_sample: True; use_votes: false;
-[2020-07-29 19:10:42,919 @inference.py:76] INFO: GPU Total Count： 2
-[2020-07-29 19:10:42,947 @inference.py:36] INFO: using GPU index 0
-[2020-07-29 19:10:42,947 @inference.py:38] INFO: updated test batch size 11
-[2020-07-29 19:10:42,947 @DataSet.py:77] INFO: set input clouds
-[2020-07-29 19:10:51,331 @DataSet.py:94] INFO: down sampling from 4993345 to 2300199
-[2020-07-29 19:10:51,331 @DataSet.py:106] INFO: start KDTree construction (leaf_size : 50)
-[2020-07-29 19:10:52,252 @DataSet.py:112] INFO: KDTree construction time cost : 0.9215130805969238 s
-[2020-07-29 19:11:29,421 @DataSet.py:119] INFO: KDTree projection time cost : 37.16767954826355 s
-[2020-07-29 19:11:29,422 @DataSet.py:123] INFO: update test steps from 50 to 8
-[2020-07-29 19:11:29,422 @DataSet.py:124] INFO: size list [4993345]
-[2020-07-29 19:11:29,425 @DataSet.py:283] INFO: Initiating input pipelines
-[2020-07-29 19:11:29,426 @DataSet.py:288] INFO: ignore label index : [0]
-[2020-07-29 19:11:29,698 @inference.py:50] INFO: [tf data preparation] Done in 46.8 s
-
-[2020-07-29 19:11:37,305 @inference.py:56] INFO: [construct network] Done in 7.6 s
-
-[2020-07-29 19:11:41,218 @Semantic3D_Inference.py:24] INFO: Model restored from G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\RandLA_Net\snapshots/snap-29501
-[2020-07-29 19:11:41,218 @inference.py:62] INFO: [init network parameters] Done in 3.9 s
-
-[2020-07-29 19:12:02,584 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   1. min possibility = 0.0
-[2020-07-29 19:12:15,970 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   2. min possibility = 0.0
-[2020-07-29 19:12:33,207 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   3. min possibility = 0.0
-[2020-07-29 19:12:50,052 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   4. min possibility = 0.0
-[2020-07-29 19:13:05,651 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   5. min possibility = 0.0
-[2020-07-29 19:13:19,254 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   6. min possibility = 0.0
-[2020-07-29 19:13:35,877 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   7. min possibility = 0.0
-[2020-07-29 19:13:51,294 @Semantic3D_Inference.py:64] INFO: Epoch   0, step   8. min possibility = 0.0
-[2020-07-29 19:13:52,258 @Semantic3D_Inference.py:70] INFO: Epoch   0, end. Min possibility = 0.0
-[2020-07-29 19:13:52,258 @Semantic3D_Inference.py:80] INFO: Reproject Vote #0
-[2020-07-29 19:13:52,768 @Semantic3D_Inference.py:102] INFO: [ModelTester.inference] Done in 131.5 s
-
-[2020-07-29 19:13:53,216 @ai_point_cloud.py:156] INFO: [Warning] Scanning-Artifacts tool small number of points, ignore it...
-[2020-07-29 19:14:17,422 @ai_point_cloud.py:156] INFO: [Warning] Wire-clip tool small number of points, ignore it...
-[2020-07-29 19:14:17,627 @run_system.py:261] INFO: scene point number (0, 6)
-[2020-07-30 08:53:15,972 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 10:53:43,661 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 10:53:43,689 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 11:14:02,053 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -397,19 +383,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "821.41015625 MB",
-                             "free": "10442.58984375 MB"
+                             "used": "1135.4921875 MB",
+                             "free": "10128.5078125 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "821.41015625 MB",
-                             "free": "10442.58984375 MB"
+                             "used": "1135.4921875 MB",
+                             "free": "10128.5078125 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -418,8 +406,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-30 08:56:00,225 @run_system.py:261] INFO: scene point number (0, 6)
-[2020-07-30 09:00:54,636 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 11:14:02,054 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 11:14:02,083 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 11:14:06,773 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -435,19 +424,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "822.16015625 MB",
-                             "free": "10441.83984375 MB"
+                             "used": "1092.17578125 MB",
+                             "free": "10171.82421875 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "822.16015625 MB",
-                             "free": "10441.83984375 MB"
+                             "used": "1092.17578125 MB",
+                             "free": "10171.82421875 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -456,8 +447,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-30 09:00:56,640 @run_system.py:261] INFO: scene point number (0, 6)
-[2020-07-30 09:02:31,993 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 11:14:06,774 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 11:14:06,802 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 13:55:58,510 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -473,19 +465,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "821.97265625 MB",
-                             "free": "10442.02734375 MB"
+                             "used": "982.6484375 MB",
+                             "free": "10281.3515625 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "821.97265625 MB",
-                             "free": "10442.02734375 MB"
+                             "used": "982.6484375 MB",
+                             "free": "10281.3515625 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -494,8 +488,9 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-30 09:02:48,178 @run_system.py:261] INFO: scene point number (4993345, 6)
-[2020-07-30 09:42:06,151 @cfgs.py:155] INFO: Semantic Segmentation System Configuration: 
+[2020-10-20 13:55:58,510 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 13:55:58,540 @randLA_detector.py:39] INFO: using GPU index 0
+[2020-10-20 13:56:03,236 @cfgs.py:157] INFO: Semantic Segmentation System Configuration: 
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ROOT_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem
 TEST_PATH            G:\develop\pcl_projects\ErowCloudViewer\ErowCloudViewerPython\CloudViewerAISystem\SemanticSegmentationSystem\test\test_clouds
@@ -511,19 +506,21 @@ SNIPER_SERVER_URL    http://localhost:9002/helmetdetector
 GPU_INFO             {
                          "GPU 0 INFO": {
                              "total": "11264.0 MB",
-                             "used": "819.72265625 MB",
-                             "free": "10444.27734375 MB"
+                             "used": "982.6484375 MB",
+                             "free": "10281.3515625 MB"
                          },
                          "GPU 1 INFO": {
                              "total": "11264.0 MB",
-                             "used": "819.72265625 MB",
-                             "free": "10444.27734375 MB"
+                             "used": "982.6484375 MB",
+                             "free": "10281.3515625 MB"
                          }
                      }
 GPU_MODE             0
 NUM_CLASSES          20
-NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-clip': 15, 'Linker-insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
-LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-clip', 16: 'Linker-insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
+MIN_POINTS           100
+VOXEL_SIZE           0.02
+NAME_LABEL_MAP       {'Unlabeled': 0, 'Manmade-Terrain': 1, 'Natural-Terrain': 2, 'High-Vegetation': 3, 'Low-Vegetation': 4, 'Buildings': 5, 'Hard-Scape': 6, 'Scanning-Artifacts': 7, 'Cars': 8, 'Utility-Pole': 9, 'Insulator': 10, 'Electrical-Wire': 11, 'Cross-Bar': 12, 'Stick': 13, 'Fuse': 14, 'Wire-Clip': 15, 'Linker-Insulator': 16, 'Persons': 17, 'Traffic-Sign': 18, 'Traffic-Light': 19}
+LABEL_NAME_MAP       {0: 'Unlabeled', 1: 'Manmade-Terrain', 2: 'Natural-Terrain', 3: 'High-Vegetation', 4: 'Low-Vegetation', 5: 'Buildings', 6: 'Hard-Scape', 7: 'Scanning-Artifacts', 8: 'Cars', 9: 'Utility-Pole', 10: 'Insulator', 11: 'Electrical-Wire', 12: 'Cross-Bar', 13: 'Stick', 14: 'Fuse', 15: 'Wire-Clip', 16: 'Linker-Insulator', 17: 'Persons', 18: 'Traffic-Sign', 19: 'Traffic-Light'}
 GPU_MEMORY_FRACTION  0.5
 NMS_THRESHOLD        0.5
 VISUALIZATION        True
@@ -532,4 +529,5 @@ USE_VOTES            False
 TOOLS_TYPE           CLOUDVIEWER
 DATA                 {'VAL': {}}
 -------------------  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[2020-07-30 09:42:06,513 @run_system.py:252] INFO: scene point number (4993345, 6)
+[2020-10-20 13:56:03,237 @randLA_detector.py:19] INFO: GPU Total Count： 2
+[2020-10-20 13:56:03,265 @randLA_detector.py:39] INFO: using GPU index 0
