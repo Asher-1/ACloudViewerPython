@@ -20,12 +20,18 @@ def read_img_base64(p):
     return img_string.decode()
 
 
-def post(detection_infos):
+def request_result(detection_infos):
     url = 'http://127.0.0.1:9995/aiCloud?'  ##url地址
-
     http_response = requests.post(url, json=json.dumps(detection_infos))
     data = http_response.content.decode('utf-8')
+    return data
+
+
+def post(detection_infos):
+    data = request_result(detection_infos)
     res_dict = json.loads(data)
+    if isinstance(res_dict, str):
+        res_dict = json.loads(res_dict)
     print("#" * 50)
 
     if 'state' in res_dict.keys():
@@ -39,8 +45,8 @@ def post(detection_infos):
         print("extraction time take: {} s".format(extraction_time_take))
 
     # write detection result in json format
-    with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
-        fp.write(json.dumps(res_dict, indent=4, ensure_ascii=False))
+    with open(os.path.join(TEST_PATH, RESULT_FILE_NAME), 'w') as fp:
+        fp.write(json.dumps(res_dict, ensure_ascii=False))
     print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
 
     if "instances" in res_dict.keys():
@@ -71,11 +77,32 @@ def generate_request_jsons():
         fp.write(json.dumps(info_dict, indent=4, ensure_ascii=False))
 
 
-if __name__ == '__main__':
-    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
-    CUR_PATH = os.path.dirname(os.path.abspath(__file__))
-    task = "full_request.json"
+def inference():
     request_json_path = os.path.join(CUR_PATH, "request_jsons", task)
     with open(request_json_path, 'r', encoding='utf8') as fp:
         info_dict = json.load(fp)
         post([info_dict])
+
+
+def compress_results(json_file):
+    with open(os.path.join(TEST_PATH, json_file), 'r') as fp:
+        res_dict = json.load(fp)
+        with open(os.path.join(TEST_PATH, "compressed_" + json_file), 'w') as fw:
+            json.dump(res_dict, fw, ensure_ascii=False)
+
+
+if __name__ == '__main__':
+    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    CUR_PATH = os.path.dirname(os.path.abspath(__file__))
+    RESULT_FILE_NAME = "result.json"
+    task = "full_request.json"
+
+    # inference()
+    compress_results(RESULT_FILE_NAME)
+
+    res = request_result([{"file": {"number": 1234}}])
+    print(res)
+    res2 = json.loads(res)
+    print(res2)
+    res3 = json.loads(res2)
+    print(res3)

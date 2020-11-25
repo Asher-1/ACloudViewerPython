@@ -9,13 +9,13 @@ if not debug_mode:
 
 import os
 import sys
-import json
 import datetime
 import random
 import logging
 import shutil
 import errno
 import requests
+import json
 from flask import Flask, request
 from flask_restful import Api
 from flask_restful import Resource
@@ -119,10 +119,7 @@ def prepare_data(file_list, cache_dir):
             file_url = file_dict["file_url"]
 
         # Cannot find file in local and cache dir
-        if file_path != "":
-            cache_file = os.path.join(cache_dir, os.path.basename(file_path))
-        else:
-            cache_file = os.path.join(cache_dir, os.path.basename(file_url))
+        cache_file = os.path.join(cache_dir, os.path.basename(file_url))
 
         if not os.path.exists(file_path) and not os.path.exists(cache_file):
             url = file_url
@@ -178,6 +175,10 @@ class Hello(Resource):
         return {"message": "Hello ErowCloudViewer AI System!"}
 
 
+def wrapper_result(res):
+    return json.dumps(res, ensure_ascii=False)
+
+
 class AICloud(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -197,10 +198,10 @@ class AICloud(Resource):
                 request_info = json.loads(info["json"])
             else:
                 app.logger.warning("invalid parameters")
-                return {'result': [], 'time_take': 0, 'state': "invalid parameters"}
+                return wrapper_result({'result': [], 'time_take': 0, 'state': "invalid parameters"})
         else:
             app.logger.warning("invalid parameters")
-            return {'result': [], 'time_take': 0, 'state': "invalid parameters"}
+            return wrapper_result({'result': [], 'time_take': 0, 'state': "invalid parameters"})
 
         target_info_list = []
         scene_list = []
@@ -208,15 +209,15 @@ class AICloud(Resource):
             if "files" not in scene.keys():
                 message = "invalid parameters: no files found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": [0, 243, [2, 3, (343, 45)]], "state": message})
             if "strategy" not in scene.keys():
                 message = "invalid parameters: no strategy found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": 0, "state": message})
             if "targets" not in scene["strategy"]:
                 message = "invalid parameters: no targets found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": 0, "state": message})
 
             file_list = scene["files"]
             file_list = prepare_data(file_list, app.config['CLOUDS_CACHE_FOLDER'])
@@ -225,13 +226,16 @@ class AICloud(Resource):
             target_info_list.append(target_info)
         res = cloud_ai.semantic_segmentation(scene_list, target_info_list=target_info_list)
         clear_cache_if_necessary(app.config['CLOUDS_CACHE_FOLDER'])
-        return json.dumps(res)
+        return wrapper_result(res)
 
 
 api.add_resource(Hello, '/')
 api.add_resource(AICloud, '/aiCloud')
 
 if __name__ == '__main__':
+    from SemanticSegmentationSystem.help_utils.logger_utils import logger
+
+    app.logger = logger
     if not debug_mode:
         http_server = WSGIServer(('0.0.0.0', 9995), app)
         http_server.serve_forever()

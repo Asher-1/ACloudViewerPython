@@ -136,7 +136,7 @@ def local_test(show_detail=True):
                     tools.Plot.draw_pc(points_array, window_name=cfgs.LABEL_NAME_MAP[L])
 
     # test segmentation
-    # semantic_segmentation(LABEL_EXTENT)
+    # semantic_segmentation(LABEL_EXTENT)9
 
     # visualization
     visualize_results(TEST_PATH, EXTENT, LABEL_EXTENT)
@@ -289,7 +289,7 @@ if __name__ == '__main__':
     # EXTENT = '.xyz'
     EXTENT = ".pcd"
     LABEL_EXTENT = ".labels"
-    SHOW_DETAIL = True
+    SHOW_DETAIL = False
     METHOD = "ransac"  # "ransac", "euclidean"
 
     TOP_K = 100
