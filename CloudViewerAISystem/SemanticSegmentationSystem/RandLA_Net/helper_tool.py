@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import platform
 import numpy as np
 import pandas as pd
@@ -15,6 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from ..help_utils import sklearn_utils
 from ..help_utils import cloudviewer_utils as tools
+
 # from ..help_utils import open3d_utils as tools
 
 system = platform.system()
@@ -79,8 +81,7 @@ class ConfigSemantic3D:
     num_layers = 5  # Number of layers
     num_points = 65536  # Number of input points
     num_classes = 19  # Number of valid classes default = 8
-    sub_grid_size = 0.06  # preprocess_parameter default = 0.06
-    grid_size_scale = 2  # preprocess_parameter default = 2
+    sub_grid_size = 0.03  # preprocess_parameter default = 0.06
 
     nn_method = "cloudViewer"  # "sklearn", "cloudViewer", "cppWrapper"
     sampling_method = "cloudViewer"  # "cloudViewer", "cppWrapper"
@@ -103,6 +104,12 @@ class ConfigSemantic3D:
     train_sum_dir = 'train_log'
     saving = True
     saving_path = '/media/yons/data/dataset/pointCloud/RandLA_net/models/Semantic3D'
+    model_path = os.path.join(BASE_DIR, 'snapshots', "grid_size_{}".format(sub_grid_size))
+    files = glob.glob(os.path.join(model_path, "snap-*"))
+    assert len(files) > 0 and "." in files[0], "cannot find model file in {}".format(files)
+    snap_name = os.path.basename(files[0])
+    snap_name, _ = os.path.splitext(snap_name)
+    restore_snap = os.path.join(model_path, snap_name)
 
     augment_scale_anisotropic = True
     augment_symmetries = [True, False, False]
@@ -241,8 +248,9 @@ class DataProcessing:
         return tools.KDTree.knn_batch(support_pts, query_pts, k)
 
     @staticmethod
-    def voxel_down_sampling(points, features=None, grid_scale=2):
-        return tools.Utility.voxel_sampling(points, features, grid_scale)
+    def voxel_down_sampling(points, features=None, voxel_size=0.03):
+        return tools.Utility.voxel_sampling(input_data=np.concatenate((points, features), axis=1),
+                                            voxel_size=voxel_size)
 
     @staticmethod
     def grid_sub_sampling(points, features=None, labels=None, grid_size=0.1, verbose=0):

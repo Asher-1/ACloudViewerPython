@@ -6,7 +6,6 @@
 # @Software: PyCharm
 
 import os
-import imageio
 import numpy as np
 from PIL import Image
 from time import gmtime, strftime
@@ -113,76 +112,3 @@ def intersection_ratio(box1, box2):
         return 0
     iou_area = iou_width * iou_height
     return iou_area * 1.0 / (width2 * height2)
-
-def accuracy(labels, head_info):
-    error_number = 0
-    for head in head_info:
-        head_name, head_box, head_score = head
-        inter_ratio_list = [IOU(head_box_label, head_box) for (head_name_label, head_box_label) in labels]
-        if len(inter_ratio_list) == 0:
-            continue
-        index = np.argmax(inter_ratio_list)
-        if inter_ratio_list[index] > 0.5:
-            if head_name != labels[index][0]:
-                error_number += 1
-        else:
-            pass
-            # error_number += 1
-    return error_number
-
-
-# Deprecated
-def helmet_classification(helmet_classifier, image_np, person_head_list, snapshot=False, log_path=None):
-    if len(person_head_list) < 1:
-        return None, None
-    image_np = np.squeeze(image_np)
-    im_height = image_np.shape[0]
-    im_width = image_np.shape[1]
-    margin = 0
-    mini_filter_size = helmet_classifier.mini_filter_size
-    image_list = []
-    new_person_head_list = []
-    for person_head in person_head_list:
-        box = person_head[0]
-        ymin, xmin, ymax, xmax = box
-        bb = np.zeros(4, dtype=np.int32)
-        bb[0] = np.maximum(xmin * im_width - margin, 0)  # x_min
-        bb[1] = np.maximum(ymin * im_height - margin, 0)  # y_min
-        bb[2] = np.minimum(xmax * im_width + margin, im_width)  # x_max
-        bb[3] = np.minimum(ymax * im_height + margin, im_height)  # y_max
-        if bb[2] - bb[0] >= mini_filter_size and bb[3] - bb[1] >= mini_filter_size:
-            cropped = image_np[bb[1]:bb[3], bb[0]:bb[2], :]
-            image_list.append(cropped)
-            new_person_head_list.append(person_head)
-    if len(image_list) > 0:
-        result_list = helmet_classifier.classify(image_list)
-        if snapshot and log_path:
-            snapshot_head(image_list, log_path, result_list)
-        assert len(image_list) == len(result_list) == len(new_person_head_list)
-        return result_list, new_person_head_list
-    else:
-        return None, None
-
-
-# Deprecated
-def snapshot_head(image_list, log_path, result_list):
-    no_helmet_save_dir = os.path.join(log_path, 'no_helmet')
-    helmet_save_dir = os.path.join(log_path, 'helmet')
-    if not os.path.exists(helmet_save_dir):
-        os.makedirs(helmet_save_dir)
-    if not os.path.exists(no_helmet_save_dir):
-        os.makedirs(no_helmet_save_dir)
-    for index, (head_name, head_type_score) in enumerate(result_list):
-        if head_name == 'helmet':
-            save_dir = helmet_save_dir
-        elif head_name == 'no_helmet':
-            save_dir = no_helmet_save_dir
-        else:
-            continue
-        try:
-            sub_name = strftime("%Y%m%d%H%M%S", gmtime())
-            scaled = np.array(Image.fromarray(image_list[index]).resize((256, 256), resample=Image.BILINEAR))
-            # scaled = misc.imresize(image_list[index], (256, 256), interp='bilinear')
-            imageio.imwrite(os.path.join(save_dir, '{}_{}.{}'.format(str(index), sub_name, 'jpg')), scaled)
-        except Exception as e:
-            print(e)

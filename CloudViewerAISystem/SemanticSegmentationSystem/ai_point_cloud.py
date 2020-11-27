@@ -22,20 +22,9 @@ elif cfgs.TOOLS_TYPE == "OPEN3D":
 class AIPointCloud(object):
     def __init__(self):
         self.pc_detector = ObjectDetector()
-        self.min_points = 100
-
-    @classmethod
-    def read_clouds(cls, file, cloud_extent=".ply"):
-        # if cloud_extent == '.ply':
-        #     pc = tools.IO.read_convert_to_array(file)
-        # el
-        if cloud_extent == '.xyz' or cloud_extent == '.txt':
-            pc_array = tools.IO.load_pc_semantic3d(file, header=None, delim_whitespace=True)
-            point_cloud = tools.Utility.array_to_cloud(pc_array)
-        else:
-            pc_array, point_cloud = tools.IO.read_point_cloud(file)
-
-        return pc_array, point_cloud
+        self.min_points = cfgs.MIN_POINTS
+        self.voxel_size = cfgs.VOXEL_SIZE
+        self.read_clouds = tools.IO.read_clouds
 
     @timer_wrapper
     def semantic_segmentation(self, *data, target_info_list):
@@ -55,7 +44,7 @@ class AIPointCloud(object):
                 logger.error(message)
                 return {'result': [], 'infer_time_take': 0, 'state': message}
 
-            has_regions = "regions" in target_info_dict\
+            has_regions = "regions" in target_info_dict \
                           and "box" in target_info_dict["regions"] \
                           and len(target_info_dict["regions"]["box"]) > 0
             has_regions_list.append(has_regions)
@@ -66,22 +55,22 @@ class AIPointCloud(object):
                 for file in file_list:
                     if has_regions:
                         if pc is None:
-                            _, pc = AIPointCloud.read_clouds(file)
+                            _, pc = self.read_clouds(file)
                         else:
-                            _, pc_obj = AIPointCloud.read_clouds(file)
+                            _, pc_obj = self.read_clouds(file)
                             pc += pc_obj
                     else:
                         if pc is None:
-                            pc, _ = AIPointCloud.read_clouds(file)
+                            pc, _ = self.read_clouds(file)
                         else:
-                            pc_array, _ = AIPointCloud.read_clouds(file)
+                            pc_array, _ = self.read_clouds(file)
                             pc = np.concatenate((pc, pc_array), axis=0)
             elif len(file_list) == 1:
                 json_key_list.append(os.path.basename(file_list[0]))
                 if has_regions:
-                    _, pc = AIPointCloud.read_clouds(file_list[0])
+                    _, pc = self.read_clouds(file_list[0])
                 else:
-                    pc, _ = AIPointCloud.read_clouds(file_list[0])
+                    pc, _ = self.read_clouds(file_list[0])
             else:
                 message = "cannot find input data!"
                 logger.error(message)
@@ -149,6 +138,14 @@ class AIPointCloud(object):
 
             instance_result = {}
             target_list = list(target_info.keys())
+
+            full_mode = False
+            if len(target_list) == 0:
+                full_mode = True
+                logger.info("[extract_segmentation] full mode start...")
+            else:
+                full_mode = False
+
             for L, cloud_indices in zip(unique_labels, unique_label_indices):
                 # ignore instance whose points number is smaller than 50
                 if cloud_indices.shape[0] < self.min_points:
@@ -159,34 +156,25 @@ class AIPointCloud(object):
                     logger.info("ignore {} type".format(cfgs.LABEL_NAME_MAP[L]))
                     continue
 
-                if "All" in target_list:
-                    real_index = target_list.index("All")
-                elif L in target_list:
+                if L in target_list:
                     real_index = target_list.index(L)
                 elif cfgs.LABEL_NAME_MAP[L] in target_list:
                     real_index = target_list.index(cfgs.LABEL_NAME_MAP[L])
                 else:
                     real_index = -1
 
-                if real_index != -1:
-                    pc_obj = tools.Utility.array_to_cloud(pc_array[cloud_indices])
-                    point_cloud, reserve_indices = pc_obj.remove_statistical_outlier(30, 1)
-                    # compute point cloud_array resolution and get eps
-                    eps = point_cloud.compute_resolution() * 30
-                    # Cluster PointCloud using the DBSCAN algorithm
-                    labels = np.asarray(point_cloud.cluster_dbscan(eps=eps,
-                                                                   min_points=self.min_points,
-                                                                   print_progress=False))
-
-                    # get cluster indices by given top k value according to points number of each cluster
-                    top_k_cluster_indices = tools.Utility.get_clusters_indices_top_k(
-                        labels, top_k=target_info[target_list[real_index]], ignore_negative=True)
-
-                    global_indices = tools.Utility.map_indices(top_k_cluster_indices,
-                                                               np.asarray(reserve_indices),
-                                                               cloud_indices)
-                    global_indices = [indices.tolist() for indices in global_indices]
-                    if target_list[real_index].lower() == "All":
+                if real_index != -1 or full_mode:
+                    if full_mode:
+                        top_k = 1000000
+                    else:
+                        top_k = target_info[target_list[real_index]]
+                    seg_instances = tools.Segmentation.euclidean_cluster_segmentation(pc=pc_array,
+                                                                                      indices=cloud_indices,
+                                                                                      voxel_size=self.voxel_size,
+                                                                                      min_points=self.min_points,
+                                                                                      top_k=top_k)
+                    global_indices = [indices.tolist() for indices in seg_instances]
+                    if full_mode:
                         instance_result[cfgs.LABEL_NAME_MAP[L]] = global_indices
                     else:
                         instance_result[target_list[real_index]] = global_indices

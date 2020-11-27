@@ -22,19 +22,6 @@ elif cfgs.TOOLS_TYPE == "OPEN3D":
     from SemanticSegmentationSystem.help_utils import open3d_utils as tools
 
 
-def read_clouds(file, cloud_extent=".ply"):
-    # if cloud_extent == '.ply':
-    #     pc = tools.IO.read_convert_to_array(file)
-    # el
-    if cloud_extent == '.xyz' or cloud_extent == '.txt':
-        pc_array = tools.IO.load_pc_semantic3d(file, header=None, delim_whitespace=True)
-        point_cloud = tools.Utility.array_to_cloud(pc_array)
-    else:
-        pc_array, point_cloud = tools.IO.read_point_cloud(file)
-
-    return pc_array, point_cloud
-
-
 def get_segmentation_pair(path, cloud_extent=".ply", label_extent=".labels"):
     cloud_names = [os.path.splitext(file_name)[0] for file_name in os.listdir(path)
                    if os.path.splitext(file_name)[1] == cloud_extent]
@@ -47,12 +34,12 @@ def get_segmentation_pair(path, cloud_extent=".ply", label_extent=".labels"):
     return scene_names, label_names
 
 
-def local_test():
+def local_test(show_detail=True):
     def semantic_segmentation(label_extent=".labels"):
         pc_list = []
         file_list = file_processing.get_files_list(TEST_PATH, EXTENT)
         for file in file_list:
-            pc_array, point_cloud = read_clouds(file)
+            pc_array, point_cloud = tools.IO.read_clouds(file)
 
             ave_color_value = sum(pc_array[:, 3:6]) / pc_array.shape[0]
             if np.average(ave_color_value) < 1:
@@ -73,7 +60,7 @@ def local_test():
         scene_names, label_names = get_segmentation_pair(path, cloud_extent, label_extent)
         for scene, label in zip(scene_names, label_names):
             logger.info('scene: {}'.format(scene))
-            pc, cloud = read_clouds(scene, cloud_extent)
+            pc, cloud = tools.IO.read_clouds(scene)
             pc = pc[:, :6].astype(np.float32)
             logger.info('scene point number {}'.format(pc.shape))
             sem_pred = tools.IO.load_label_semantic3d(label)
@@ -84,12 +71,14 @@ def local_test():
             logger.info('sem_ins_labels: {}'.format(sem_ins_labels))
             tools.Plot.draw_pc_sem_ins(pc_xyz=pc[:, 0:3], pc_sem_ins=sem_pred)
 
-    def extract_instance(path, cloud_extent=".ply", label_extent=".labels", visualization=True):
+    def extract_instance(path, method="euclidean", cloud_extent=".ply",
+                         label_extent=".labels", min_points=300, top_k=10):
         scene_names, label_names = get_segmentation_pair(path, cloud_extent, label_extent)
         cmap = plt.get_cmap("tab20")
+        ignore = True
         for scene, label in zip(scene_names, label_names):
             # read point clouds
-            pc, _ = read_clouds(scene)
+            pc, _ = tools.IO.read_clouds(scene)
             pc = pc[:, :6].astype(np.float32)
             logger.info('scene point number {}'.format(pc.shape))
 
@@ -108,56 +97,59 @@ def local_test():
                     print("ignore {} type".format(cfgs.LABEL_NAME_MAP[L]))
                     continue
 
-                if cfgs.LABEL_NAME_MAP[L] == "Utility-Pole":
-                    # tools.Plot.draw_pc(pc_xyzrgb=cloud_array[:, 0:6], window_name=cfgs.LABEL_NAME_MAP[L])
-                    pc_obj = tools.Utility.array_to_cloud(pc[cloud_indices])
-                    point_cloud, reserve_indices = pc_obj.remove_statistical_outlier(30, 1)
-                    # compute point cloud_array resolution and get eps
-                    eps = point_cloud.compute_resolution() * 30
-                    logger.info("cluster dbscan eps: {}".format(eps))
-                    start = time.time()
-                    # Cluster PointCloud using the DBSCAN algorithm
-                    labels = np.array(point_cloud.cluster_dbscan(eps=eps, min_points=MIN_POINTS, print_progress=False))
-                    print("{} has {} clusters, time cost: {} s".format(
-                        cfgs.LABEL_NAME_MAP[L], labels.max() + 1, (time.time() - start)))
+                # if cfgs.LABEL_NAME_MAP[L] in ["Utility-Pole", "Insulator", "Electrical-Wire"] or not ignore:
+                if cfgs.LABEL_NAME_MAP[L] in \
+                        ["Utility-Pole", "Manmade-Terrain", "Insulator", "Electrical-Wire"] or not ignore:
+                    if method == "euclidean":
+                        seg_instances = tools.Segmentation.euclidean_cluster_segmentation(pc, cloud_indices,
+                                                                                          voxel_size=0.02,
+                                                                                          min_points=min_points,
+                                                                                          top_k=top_k)
+                    elif method == "ransac":
+                        seg_instances = tools.Segmentation.ransac_segmentation(pc, cloud_indices,
+                                                                               classification=cfgs.LABEL_NAME_MAP[L],
+                                                                               min_radius=0.001,
+                                                                               max_radius=1.0,
+                                                                               support_points=300,
+                                                                               probability=0.75)
+                    else:
+                        assert False, "unsupported segmentation method -> {}".format(method)
+                    if seg_instances is None:
+                        continue
 
-                    # get cluster indices by given top k value according to points number of each cluster
-                    top_k_cluster_indices = tools.Utility.get_clusters_indices_top_k(
-                        labels, top_k=3, ignore_negative=True)
-
-                    full_indices = tools.Utility.map_indices(top_k_cluster_indices,
-                                                             np.asarray(reserve_indices),
-                                                             cloud_indices)
+                    labels = np.zeros((pc.shape[0],))
+                    labels.fill(-1)
                     # drop ignored clusters
-                    cluster_list = tools.Utility.get_clouds_by_indices(pc, full_indices)
+                    cluster_list = tools.Utility.get_clouds_by_indices(pc, seg_instances)
+                    i = 1
+                    for cloud_cluster, cluster_indices in zip(cluster_list, seg_instances):
+                        if show_detail:
+                            tools.Plot.draw_pc(cloud_cluster, window_name=cfgs.LABEL_NAME_MAP[L])
+                        labels[cluster_indices] = i + 1
 
-                    if visualization:
-                        labels.fill(-1)
-                        for i, cluster_indices in enumerate(top_k_cluster_indices):
-                            tools.Plot.draw_pc(cluster_list[i])
-                            labels[cluster_indices] = i + 1
+                    points_array = pc[cloud_indices]
+                    labels = labels[cloud_indices]
+                    max_label = labels.max()
+                    colors = cmap(labels / (max_label if max_label > 0 else 1))
+                    colors[labels < 0] = 0
+                    points_array[:, 3:6] = colors[:, :3]
+                    tools.Plot.draw_pc(points_array, window_name=cfgs.LABEL_NAME_MAP[L])
 
-                        max_label = labels.max()
-                        colors = cmap(labels / (max_label if max_label > 0 else 1))
-                        colors[labels < 0] = 0
-                        point_cloud.set_colors(tools.Utility.numpy_to_vector3d(colors[:, :3]))
-                        tools.Plot.draw_geometries([point_cloud])
-
-    # test
-    semantic_segmentation(LABEL_EXTENT)
+    # test segmentation
+    # semantic_segmentation(LABEL_EXTENT)9
 
     # visualization
     visualize_results(TEST_PATH, EXTENT, LABEL_EXTENT)
 
     # extraction
-    # extract_instance(TEST_PATH, EXTENT, LABEL_EXTENT)
+    extract_instance(TEST_PATH, METHOD, EXTENT, LABEL_EXTENT, MIN_POINTS, TOP_K)
 
 
 class InterfaceTest(object):
     cloud_ai = AIPointCloud()
 
     @staticmethod
-    def segmentation_test_with_file():
+    def segmentation_test_with_file(show_detail=True):
         file_list = file_processing.get_files_list(TEST_PATH, EXTENT)
         # file_list += file_processing.get_files_list(TEST_PATH, ".ply")
         info_dict = dict()
@@ -167,42 +159,41 @@ class InterfaceTest(object):
         region_dict["box"] = []
         region_dict["sphere"] = [{}, ]
         steps_dict["regions"] = region_dict
-        steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 3}
+        # steps_dict["targets"] = {"Utility-Pole": 5, "Insulator": 8}
+        steps_dict["targets"] = {}
         info_dict["strategy"] = steps_dict
         res = InterfaceTest.cloud_ai.semantic_segmentation([info_dict["files"]],
                                                            target_info_list=[info_dict["strategy"]])
         if res["state"] == "success":
             # write detection result in json format
-            with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
-                fp.write(json.dumps(res, indent=4, ensure_ascii=False))
+            tools.IO.write_jsons(os.path.join(TEST_PATH, "result.json"), res, indent=None)
             print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
 
             segmentation_info = res["instances"]
             scene_name_list = list(segmentation_info.keys())
             cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
-            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
+            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list, show_detail)
 
     @staticmethod
-    def segmentation_test_with_array():
+    def segmentation_test_with_array(show_detail=True):
         file_list = file_processing.get_files_list(TEST_PATH, EXTENT)
         file_list += file_processing.get_files_list(TEST_PATH, ".ply")
         target_info_list = [{"Utility-Pole": 3} for file in file_list]
         cloud_list = []
         for file in file_list:
-            pc_array, point_cloud = read_clouds(file)
+            pc_array, point_cloud = tools.IO.read_clouds(file)
             cloud_list.append(pc_array)
         res = InterfaceTest.cloud_ai.semantic_segmentation(cloud_list,
                                                            target_info_list=target_info_list)
         if res["state"] == "success":
             # write detection result in json format
-            with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
-                fp.write(json.dumps(res, indent=4, ensure_ascii=False))
+            tools.IO.write_jsons(os.path.join(TEST_PATH, "result.json"), res, indent=None)
             print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
 
             segmentation_info = res["instances"]
             scene_name_list = list(segmentation_info.keys())
             cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
-            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
+            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list, show_detail)
 
     @staticmethod
     def parse_result(root_path, scene_name_list):
@@ -216,18 +207,18 @@ class InterfaceTest(object):
                 for name in name_list:
                     file = os.path.join(root_path, name)
                     if pc is None:
-                        pc, _ = AIPointCloud.read_clouds(file)
+                        pc, _ = tools.IO.read_clouds(file)
                     else:
-                        pc_array, _ = AIPointCloud.read_clouds(file)
+                        pc_array, _ = tools.IO.read_clouds(file)
                         pc = np.concatenate((pc, pc_array), axis=0)
                 cloud_list.append(pc)
         return cloud_list
 
     @staticmethod
-    def visualization_test():
+    def visualization_test(show_detail=True):
         scene_names, label_names = get_segmentation_pair(TEST_PATH, EXTENT, LABEL_EXTENT)
         sem_pred_list = []
-        target_info_list = [{"Utility-Pole": 3} for file in scene_names]
+        target_info_list = [{"Utility-Pole": 4} for file in scene_names]
         for label_file in label_names:
             # read semantic segmentation labels
             sem_pred = tools.IO.load_label_semantic3d(label_file)
@@ -236,15 +227,15 @@ class InterfaceTest(object):
                                                           predictions=sem_pred_list,
                                                           target_info_list=target_info_list)
 
-        InterfaceTest.visualize_segmentations(res, scene_names)
+        InterfaceTest.visualize_segmentations(res, scene_names, show_detail)
 
     @staticmethod
-    def visualize_segmentations(segmentation_info, scenes):
+    def visualize_segmentations(segmentation_info, scenes, show_detail=True):
         cmap = plt.get_cmap("tab20")
         for scene, label_key in zip(scenes, list(segmentation_info.keys())):
             # read point clouds
             if isinstance(scene, str):
-                pc_array, point_cloud = read_clouds(scene)
+                pc_array, point_cloud = tools.IO.read_clouds(scene)
             else:
                 pc_array = scene
                 point_cloud = tools.Utility.array_to_cloud(scene)
@@ -261,7 +252,8 @@ class InterfaceTest(object):
                 bboxes = tools.Utility.get_bounding_boxes_by_clouds(cluster_list, [1, 0, 0])
                 bounding_boxes += bboxes
                 for i, cluster_indices in enumerate(sem_pred_dict[instance_name]):
-                    tools.Plot.draw_pc(cluster_list[i], window_name=str(instance_name))
+                    if show_detail:
+                        tools.Plot.draw_pc(cluster_list[i], window_name=str(instance_name))
                     labels[cluster_indices] = i + 1
 
             max_label = labels.max()
@@ -271,9 +263,8 @@ class InterfaceTest(object):
             tools.Plot.draw_geometries([point_cloud] + bounding_boxes)
 
     @staticmethod
-    def visualize_json_result(json_path):
-        with open(json_path, 'r', encoding='utf8')as fp:
-            det_dict = json.load(fp)
+    def visualize_json_result(json_path, show_detail=True):
+        det_dict = tools.IO.read_jsons(json_file=json_path)
         if 'state' in det_dict.keys():
             state = det_dict['state']
             print("state: {}".format(state))
@@ -287,20 +278,25 @@ class InterfaceTest(object):
             segmentation_info = det_dict["instances"]
             scene_name_list = list(segmentation_info.keys())
             cloud_list = InterfaceTest.parse_result(TEST_PATH, scene_name_list)
-            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
+            InterfaceTest.visualize_segmentations(segmentation_info, cloud_list, show_detail)
 
 
 if __name__ == '__main__':
     tools.Utility.set_verbosity_level(level=tools.VerbosityLevel.Debug)
-    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test')
-    json_result = os.path.join(TEST_PATH, "2_aa_bin_result.json")
-    # EXTENT = '.txt'
-    EXTENT = ".bin"
+    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/whole')
+    # TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    JSON_RESULT = os.path.join(TEST_PATH, "result.json")
+    # EXTENT = '.xyz'
+    EXTENT = ".pcd"
     LABEL_EXTENT = ".labels"
-    MIN_POINTS = 100
+    SHOW_DETAIL = False
+    METHOD = "ransac"  # "ransac", "euclidean"
 
-    # local_test()
-    tester = InterfaceTest()
-    # tester.segmentation_test_with_file()
-    # tester.visualization_test()
-    tester.visualize_json_result(json_result)
+    TOP_K = 100
+    MIN_POINTS = 300
+
+    local_test(SHOW_DETAIL)
+    # tester = InterfaceTest()
+    # tester.segmentation_test_with_file(SHOW_DETAIL)
+    # tester.visualization_test(SHOW_DETAIL)
+    # tester.visualize_json_result(JSON_RESULT, SHOW_DETAIL)

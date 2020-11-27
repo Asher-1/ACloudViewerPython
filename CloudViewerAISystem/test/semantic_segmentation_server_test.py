@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 @author: asher
-后台通过接口调用服务，获取OCR识别结果
 """
 import os
 import sys
 import json
 import base64
 import requests
-import numpy as np
-from tqdm import tqdm
 
 sys.path.append("..")
 from SemanticSegmentationSystem.run_system import InterfaceTest
@@ -23,12 +20,18 @@ def read_img_base64(p):
     return img_string.decode()
 
 
-def post(detection_infos):
+def request_result(detection_infos):
     url = 'http://127.0.0.1:9995/aiCloud?'  ##url地址
-
     http_response = requests.post(url, json=json.dumps(detection_infos))
     data = http_response.content.decode('utf-8')
+    return data
+
+
+def post(detection_infos):
+    data = request_result(detection_infos)
     res_dict = json.loads(data)
+    if isinstance(res_dict, str):
+        res_dict = json.loads(res_dict)
     print("#" * 50)
 
     if 'state' in res_dict.keys():
@@ -42,8 +45,8 @@ def post(detection_infos):
         print("extraction time take: {} s".format(extraction_time_take))
 
     # write detection result in json format
-    with open(os.path.join(TEST_PATH, "result.json"), 'w') as fp:
-        fp.write(json.dumps(res_dict, indent=4, ensure_ascii=False))
+    with open(os.path.join(TEST_PATH, RESULT_FILE_NAME), 'w') as fp:
+        fp.write(json.dumps(res_dict, ensure_ascii=False))
     print("write detection result to {}".format(os.path.join(TEST_PATH, "result.json")))
 
     if "instances" in res_dict.keys():
@@ -53,12 +56,11 @@ def post(detection_infos):
         InterfaceTest.visualize_segmentations(segmentation_info, cloud_list)
 
 
-if __name__ == '__main__':
-    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
-    # file_list = file_processing.get_files_list(TEST_PATH, ".pcd")
-    # file_list += file_processing.get_files_list(TEST_PATH, ".ply")
+def generate_request_jsons():
+    FILE_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    # file_list = file_processing.get_files_list(FILE_PATH, ".pcd")
+    # file_list += file_processing.get_files_list(FILE_PATH, ".ply")
     file_list = ["scene2_a.pcd", "scene2_b.pcd", "scene2_c.pcd"]
-
     info_dict = dict()
     info_dict["files"] = file_list
     steps_dict = dict()
@@ -71,6 +73,36 @@ if __name__ == '__main__':
     steps_dict["targets"] = {"Utility-Pole": 3, "Insulator": 10}
     info_dict["strategy"] = steps_dict
     # write detection result in json format
-    with open(os.path.join(TEST_PATH, "request.json"), 'w') as fp:
+    with open(os.path.join(FILE_PATH, "request.json"), 'w') as fp:
         fp.write(json.dumps(info_dict, indent=4, ensure_ascii=False))
-    post([info_dict])
+
+
+def inference():
+    request_json_path = os.path.join(CUR_PATH, "request_jsons", task)
+    with open(request_json_path, 'r', encoding='utf8') as fp:
+        info_dict = json.load(fp)
+        post([info_dict])
+
+
+def compress_results(json_file):
+    with open(os.path.join(TEST_PATH, json_file), 'r') as fp:
+        res_dict = json.load(fp)
+        with open(os.path.join(TEST_PATH, "compressed_" + json_file), 'w') as fw:
+            json.dump(res_dict, fw, ensure_ascii=False)
+
+
+if __name__ == '__main__':
+    TEST_PATH = os.path.join('G:/dataset/pointCloud/data/ownTrainedData/test/scene')
+    CUR_PATH = os.path.dirname(os.path.abspath(__file__))
+    RESULT_FILE_NAME = "result.json"
+    task = "full_request.json"
+
+    # inference()
+    compress_results(RESULT_FILE_NAME)
+
+    res = request_result([{"file": {"number": 1234}}])
+    print(res)
+    res2 = json.loads(res)
+    print(res2)
+    res3 = json.loads(res2)
+    print(res3)
