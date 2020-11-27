@@ -24,22 +24,16 @@ from .RandLANet_Inference import Network as NetworkInference
 from .Semantic3D_Inference import ModelTester as ModelInference
 
 
-def inference(data=None, need_sample=True, use_votes=False, pool=None, logger=None):
+def inference(data=None, need_sample=True, use_votes=False, pool=None, logger=None, test_batch_size=16, gpu_index=-1):
     logger.info("need_sample: {}; use_votes: {};".format(
         "True" if need_sample else "false",
         "True" if use_votes else "false"))
 
     DP.pool = pool
-
     config = ConfigSemantic3D()
-    gpu_index, updated_infer_batch_size = config_device(logger)
-    logger.info("using GPU index {}".format(gpu_index))
-    config.test_batch_size = updated_infer_batch_size
-    logger.info("updated test batch size {}".format(config.test_batch_size))
-
-    ROOT_PATH = os.path.dirname(__file__)
-    MODEL_PATH = os.path.join(ROOT_PATH, 'snapshots/snap-29501')
-    chosen_snap = MODEL_PATH
+    old_test_batch_size = config.test_batch_size
+    config.test_batch_size = test_batch_size
+    logger.info("updated test batch size from {} to {}".format(old_test_batch_size, config.test_batch_size))
 
     #  step 2. tf data preparation
     t1 = time.time()
@@ -57,37 +51,13 @@ def inference(data=None, need_sample=True, use_votes=False, pool=None, logger=No
 
     #  step 4. init network parameters
     t1 = time.time()
-    tester = ModelInference(logger=logger, restore_snap=chosen_snap, on_cpu=False if gpu_index != -1 else True)
+    tester = ModelInference(logger=logger, restore_snap=config.restore_snap, on_cpu=False if gpu_index != -1 else True)
     t2 = time.time()
     logger.info('[init network parameters] Done in {:.1f} s\n'.format(t2 - t1))
 
     #  step 5. inference
     preds_list = tester.inference(model, dataset, use_votes=use_votes, num_votes=50)
     return preds_list
-
-
-def config_device(logger):
-    gpu_index = -1
-    batch_size = 2
-    try:
-        import pynvml
-        pynvml.nvmlInit()
-        gpu_num = pynvml.nvmlDeviceGetCount()
-        logger.info("GPU Total Count： " + str(gpu_num))  # 显示有几块GPU
-        free_memory_list = []
-        for i in range(gpu_num):
-            handle = pynvml.nvmlDeviceGetHandleByIndex(i)  # 这里的0是GPU id
-            meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-            free_memory_list.append(meminfo.free / 1024 ** 2)
-
-        max_gpu_memory = max(free_memory_list)
-        gpu_index = free_memory_list.index(max_gpu_memory)
-        batch_size = math.ceil(max_gpu_memory / 1024)
-    except Exception as e:
-        gpu_index = -1
-        logger.warning(str(e) + '--->\t cannot get gpu info...')
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_index)
-    return gpu_index, batch_size
 
 
 if __name__ == '__main__':

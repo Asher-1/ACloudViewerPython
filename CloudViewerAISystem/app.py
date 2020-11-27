@@ -9,31 +9,27 @@ if not debug_mode:
 
 import os
 import sys
-import json
 import datetime
 import random
 import logging
 import shutil
 import errno
 import requests
+import json
 from flask import Flask, request
 from flask_restful import Api
 from flask_restful import Resource
 from flask_restful import reqparse
-from werkzeug import secure_filename
 
 work_dir = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(work_dir)
 
 current_file_path = os.path.realpath(__file__)
 current_file_dir_path = os.path.dirname(current_file_path)
-face_utils_dir_path = os.path.join(current_file_dir_path, "face_utils")
 
 sys.path.append(current_file_dir_path)
-sys.path.append(face_utils_dir_path)
 
 print(current_file_dir_path)
-print(face_utils_dir_path)
 
 from projectinfo import pointclouds_cache_info
 from projectinfo import datasets_url_info
@@ -55,22 +51,12 @@ app.config['CLOUDS_CACHE_FOLDER'] = pointclouds_cache_info.CLOUDS_CACHE_DIR_NAME
 app.config['IMAGE_CACHE_FOLDER'] = pointclouds_cache_info.IMAGE_CACHE_DIR_PATH
 app.config['DATA_URL'] = datasets_url_info.URL
 
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
-ALLOWED_EXTENSIONS = {'vtk', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'vtk', 'pcd', 'xyz', 'ply', 'bin'}
 
 
 # define the allowed file for uploading
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
-
-
-def check_image_size(image_plt, mini_length=500):
-    min_side_length = min(image_plt.size)
-    if min_side_length < mini_length:
-        app.logger.warning("detect invalid image size: {}".format(min_side_length))
-        return False
-    else:
-        return True
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # generate a unique id by datetime now
@@ -116,12 +102,27 @@ def get_dir_size(dir):
     return size / 1024 / 1024 / 1024  # GB
 
 
+def str2bool(v):
+    return v.lower() in ("true", "t", "1")
+
+
 def prepare_data(file_list, cache_dir):
     new_file_list = []
-    for file in file_list:
-        cache_file = os.path.join(cache_dir, os.path.basename(file))
-        if not os.path.exists(file) and not os.path.exists(cache_file):  # // cannot find file in local and cache dir
-            url = app.config['DATA_URL'] + os.path.basename(file)
+    for file_dict in file_list:
+        if not isinstance(file_dict, dict):
+            continue
+        file_path = ""
+        file_url = ""
+        if "file_path" in file_dict.keys():
+            file_path = file_dict["file_path"]
+        if "file_url" in file_dict.keys():
+            file_url = file_dict["file_url"]
+
+        # Cannot find file in local and cache dir
+        cache_file = os.path.join(cache_dir, os.path.basename(file_url))
+
+        if not os.path.exists(file_path) and not os.path.exists(cache_file):
+            url = file_url
             app.logger.info("downloading file from {} ...".format(url))
             r = requests.get(url)
             with open(cache_file, "wb") as f:
@@ -130,8 +131,8 @@ def prepare_data(file_list, cache_dir):
                 app.logger.info("cache file to {}".format(cache_file))
         elif os.path.exists(cache_file):
             new_file_list.append(cache_file)
-        elif os.path.exists(file):
-            new_file_list.append(file)
+        elif os.path.exists(file_path):
+            new_file_list.append(file_path)
     return new_file_list
 
 
@@ -174,21 +175,33 @@ class Hello(Resource):
         return {"message": "Hello ErowCloudViewer AI System!"}
 
 
+def wrapper_result(res):
+    return json.dumps(res, ensure_ascii=False)
+
+
 class AICloud(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('need_sample', type=str, location='args', required=False, default='None')
+        self.parser.add_argument('need_sample', type=str2bool, location='args', required=False, default=True)
 
     def post(self):
         url_params = self.parser.parse_args()
         need_sample = url_params.get('need_sample')
+
         if isinstance(request.json, dict):
             request_info = request.json
         elif isinstance(request.json, str):
             request_info = json.loads(request.json)
+        elif request.json is None:
+            info = request.form.to_dict()
+            if "json" in info.keys():
+                request_info = json.loads(info["json"])
+            else:
+                app.logger.warning("invalid parameters")
+                return wrapper_result({'result': [], 'time_take': 0, 'state': "invalid parameters"})
         else:
             app.logger.warning("invalid parameters")
-            return {'result': [], 'time_take': 0, 'state': "invalid parameters"}
+            return wrapper_result({'result': [], 'time_take': 0, 'state': "invalid parameters"})
 
         target_info_list = []
         scene_list = []
@@ -196,15 +209,15 @@ class AICloud(Resource):
             if "files" not in scene.keys():
                 message = "invalid parameters: no files found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": [0, 243, [2, 3, (343, 45)]], "state": message})
             if "strategy" not in scene.keys():
                 message = "invalid parameters: no strategy found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": 0, "state": message})
             if "targets" not in scene["strategy"]:
                 message = "invalid parameters: no targets found!"
                 app.logger.warning(message)
-                return {'result': [], 'time_take': 0, 'state': message}
+                return wrapper_result({"result": [], "time_take": 0, "state": message})
 
             file_list = scene["files"]
             file_list = prepare_data(file_list, app.config['CLOUDS_CACHE_FOLDER'])
@@ -213,13 +226,16 @@ class AICloud(Resource):
             target_info_list.append(target_info)
         res = cloud_ai.semantic_segmentation(scene_list, target_info_list=target_info_list)
         clear_cache_if_necessary(app.config['CLOUDS_CACHE_FOLDER'])
-        return res
+        return wrapper_result(res)
 
 
 api.add_resource(Hello, '/')
 api.add_resource(AICloud, '/aiCloud')
 
 if __name__ == '__main__':
+    from SemanticSegmentationSystem.help_utils.logger_utils import logger
+
+    app.logger = logger
     if not debug_mode:
         http_server = WSGIServer(('0.0.0.0', 9995), app)
         http_server.serve_forever()

@@ -1,0 +1,13 @@
+{
+    "files": [
+        {"file_url" : "http://192.168.10.176:8080/scene2_a.pcd", "file_path":"scene2_a.pcd"},
+        {"file_url" : "http://192.168.10.176:8080/scene2_b.pcd", "file_path":"scene2_b.pcd"},
+        {"file_url" : "http://192.168.10.176:8080/scene2_c.pcd", "file_path":"scene2_c.pcd"}
+    ],
+    "strategy": {
+        "regions": {
+        },
+        "targets": {
+        }
+    }
+}

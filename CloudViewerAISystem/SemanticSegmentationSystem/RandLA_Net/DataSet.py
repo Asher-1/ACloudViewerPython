@@ -79,25 +79,24 @@ class DataSetSemantic3D:
             self.raw_size_list.append(pc.shape[0])
             if self.need_sample:
                 if self.config.sampling_method == "cppWrapper":
-                    sub_xyz, sub_colors = DP.grid_sub_sampling(pc[:, :3].astype(np.float32),
-                                                               pc[:, 3:6],
+                    sub_xyz, sub_colors = DP.grid_sub_sampling(pc[:, :3].astype(np.float32), pc[:, 3:6],
                                                                grid_size=self.config.sub_grid_size)
                 elif self.config.sampling_method == "cloudViewer":
                     sub_xyz, sub_colors = DP.voxel_down_sampling(pc[:, :3].astype(np.float32), pc[:, 3:6],
-                                                                 grid_scale=self.config.grid_size_scale)
+                                                                 voxel_size=self.config.sub_grid_size)
                 else:
                     self.logger.error("unsupported sampling method : {}".format(self.config.sampling_method))
                     continue
 
                 if self.logger is not None:
-                    self.logger.info('down sampling from {} to {}'.
-                                     format(self.raw_size_list[-1], sub_xyz.shape[0]))
+                    self.logger.info('[grid_size={}] down sampling from {} to {}'.
+                                     format(self.config.sub_grid_size, self.raw_size_list[-1], sub_xyz.shape[0]))
             else:
                 sub_xyz = pc[:, :3].astype(np.float32)
                 sub_colors = pc[:, 3:6]
 
-            ave_color_value = sum(sub_colors[0, :]) / sub_colors.shape[1]
-            if ave_color_value > 1:
+            max_color_value = np.max(sub_colors)
+            if max_color_value > 1:
                 sub_colors = sub_colors / 255.0
 
             self.input_colors[self.cloud_split] += [sub_colors]
