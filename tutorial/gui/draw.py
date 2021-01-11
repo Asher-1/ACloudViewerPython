@@ -74,8 +74,8 @@ def actions():
     bunny.paint_uniform_color((1, 0.75, 0))
     bunny.compute_vertex_normals()
     cloud = cv3d.geometry.ccPointCloud()
-    cloud.set_points(bunny.vertices)
-    cloud.set_normals(bunny.vertex_normals)
+    cloud.set_points(bunny.get_vertices())
+    cloud.set_normals(bunny.get_vertex_normals())
 
     def make_mesh(o3dvis):
         # TODO: call o3dvis.get_geometry instead of using bunny
