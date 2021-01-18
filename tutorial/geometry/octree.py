@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 
 import cloudViewer as cv3d
 import numpy as np
@@ -12,10 +10,8 @@ import os
 import sys
 
 # only needed for tutorial, monkey patches visualization
-sys.path.append('../..')
+sys.path.append('..')
 import cloudViewer_tutorial as cv3dtut
-# change to True if you want to interact with the visualization windows
-cv3dtut.interactive = not "CI" in os.environ
 
 
 # # Octree
@@ -25,8 +21,6 @@ cv3dtut.interactive = not "CI" in os.environ
 # An octree can be constructed from a point cloud using the method `convert_from_point_cloud`. Each point is inserted into the tree by following the path from the root node to the appropriate leaf node at depth `max_depth`. As the tree depth increases, internal (and eventually leaf) nodes represents a smaller partition of 3D space.
 # 
 # If the point cloud has color, the the corresponding leaf node takes the color of the last inserted point. The `size_expand` parameter increases the size of the root octree node so it is slightly bigger than the original point cloud bounds to accomodate all points.
-
-# In[2]:
 
 
 print('input')
@@ -67,8 +61,6 @@ cv3d.visualization.draw_geometries([octree])
 # 
 # In the following example, an early stopping criterion is used to only process internal/leaf nodes with more than a certain number of points. This early stopping ability can be used to efficiently process spatial regions meeting certain conditions.
 
-# In[ ]:
-
 
 def f_traverse(node, node_info):
     early_stop = False
@@ -99,9 +91,6 @@ def f_traverse(node, node_info):
     return early_stop
 
 
-# In[ ]:
-
-
 octree = cv3d.geometry.Octree(max_depth=4)
 octree.convert_from_point_cloud(pcd, size_expand=0.01)
 octree.traverse(f_traverse)
@@ -109,9 +98,6 @@ octree.traverse(f_traverse)
 
 # ## Find leaf node containing point
 # Using the above traversal mechanism, an octree can be quickly searched for the leaf node that contains a given point. This functionality is provided via the `locate_leaf_node` method.
-
-# In[ ]:
-
 
 octree.locate_leaf_node(pcd.get_point(0))
 
