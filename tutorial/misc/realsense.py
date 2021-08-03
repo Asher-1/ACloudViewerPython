@@ -1,6 +1,6 @@
-# Open3D: www.open3d.org
+# Open3D: www.cloudViewer.org
 # The MIT License (MIT)
-# See license file or visit www.open3d.org for details
+# See license file or visit www.cloudViewer.org for details
 
 # examples/python/misc/realsense.py
 

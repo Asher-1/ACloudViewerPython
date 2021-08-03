@@ -1,7 +1,7 @@
-#!/usr/bin/env python
-
-import sys, os
 import cloudViewer as cv3d
+import cloudViewer.visualization.gui as gui
+import cloudViewer.visualization.rendering as rendering
+import sys, os
 
 
 def main():

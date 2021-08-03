@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import math
 import numpy as np
 import cloudViewer as cv3d
@@ -123,9 +122,9 @@ def get_icp_transform(source, target, source_indices, target_indices):
 
 def selections():
     source = cv3d.io.read_point_cloud(CURRENT_DIR +
-                                     "/../../TestData/ICP/cloud_bin_0.pcd")
+                                     "/../../test_data/ICP/cloud_bin_0.pcd")
     target = cv3d.io.read_point_cloud(CURRENT_DIR +
-                                     "/../../TestData/ICP/cloud_bin_2.pcd")
+                                     "/../../test_data/ICP/cloud_bin_2.pcd")
     source.paint_uniform_color([1, 0.706, 0])
     target.paint_uniform_color([0, 0.651, 0.929])
 
