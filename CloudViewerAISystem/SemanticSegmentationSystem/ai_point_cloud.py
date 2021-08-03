@@ -139,7 +139,6 @@ class AIPointCloud(object):
             instance_result = {}
             target_list = list(target_info.keys())
 
-            full_mode = False
             if len(target_list) == 0:
                 full_mode = True
                 logger.info("[extract_segmentation] full mode start...")
