@@ -83,6 +83,16 @@ def multiscale_icp(source,
                         relative_fitness=1e-6,
                         relative_rmse=1e-6,
                         max_iteration=iter))
+            if config["icp_method"] == "generalized":
+                result_icp = cv3d.pipelines.registration.registration_generalized_icp(
+                    source_down, target_down, distance_threshold,
+                    current_transformation,
+                    cv3d.pipelines.registration.
+                        TransformationEstimationForGeneralizedICP(),
+                    cv3d.pipelines.registration.ICPConvergenceCriteria(
+                        relative_fitness=1e-6,
+                        relative_rmse=1e-6,
+                        max_iteration=iter))
         current_transformation = result_icp.transformation
         if i == len(max_iter) - 1:
             information_matrix = cv3d.pipelines.registration.get_information_matrix_from_point_clouds(
@@ -168,10 +178,10 @@ def make_posegraph_for_refined_scene(ply_file_names, config):
     else:
         for r in matching_results:
             (matching_results[r].transformation,
-                    matching_results[r].information) = \
-                    register_point_cloud_pair(ply_file_names,
-                    matching_results[r].s, matching_results[r].t,
-                    matching_results[r].transformation, config)
+             matching_results[r].information) = \
+                register_point_cloud_pair(ply_file_names,
+                                          matching_results[r].s, matching_results[r].t,
+                                          matching_results[r].transformation, config)
 
     pose_graph_new = cv3d.pipelines.registration.PoseGraph()
     odometry = np.identity(4)

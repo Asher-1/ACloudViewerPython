@@ -103,6 +103,6 @@ def run(config):
         cv3d.t.io.write_point_cloud(save_pcd_path, pcd)
     else:
         mesh = voxel_grid.extract_surface_mesh().to(cv3d.core.Device("CPU:0"))
-        mesh_legacy = mesh.to_legacy_triangle_mesh()
+        mesh_legacy = mesh.to_legacy()
         save_mesh_path = join(slac_folder, "output_slac_mesh.ply")
         cv3d.io.write_triangle_mesh(save_mesh_path, mesh_legacy)
