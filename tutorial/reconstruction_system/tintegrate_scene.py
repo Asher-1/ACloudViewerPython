@@ -26,7 +26,7 @@ if __name__ == '__main__':
         'and rgb images in a folder named color/ or rgb/')
     parser.add_argument('trajectory_path',
                         type=str,
-                        help='path to the trajectory in open3d\'s .log format')
+                        help='path to the trajectory in cloudViewer\'s .log format')
     parser.add_argument('--mesh_name',
                         type=str,
                         default='mesh.ply',
@@ -114,10 +114,10 @@ if __name__ == '__main__':
 
     for i in range(n_files):
         rgb = cv3d.io.read_image(color_files[i])
-        rgb = cv3d.t.geometry.Image.from_legacy_image(rgb, device=device)
+        rgb = cv3d.t.geometry.Image.from_legacy(rgb, device=device)
 
         depth = cv3d.io.read_image(depth_files[i])
-        depth = cv3d.t.geometry.Image.from_legacy_image(depth, device=device)
+        depth = cv3d.t.geometry.Image.from_legacy(depth, device=device)
 
         extrinsic = cv3d.core.Tensor(extrinsics[i], cv3d.core.Dtype.Float32,
                                     device)
@@ -138,13 +138,13 @@ if __name__ == '__main__':
             colormap = result[cv3d.t.geometry.SurfaceMaskCode.ColorMap]
 
             cv3d.visualization.draw_geometries(
-                [cv3d.t.geometry.Image(vertexmap).to_legacy_image()])
+                [cv3d.t.geometry.Image(vertexmap).to_legacy()])
             cv3d.visualization.draw_geometries(
-                [cv3d.t.geometry.Image(colormap).to_legacy_image()])
+                [cv3d.t.geometry.Image(colormap).to_legacy()])
 
         end = time.time()
         print('Integration {:04d}/{:04d} takes {:.3f} ms'.format(
             i, n_files, (end - start) * 1000.0))
 
-    mesh = volume.cpu().extract_surface_mesh().to_legacy_triangle_mesh()
+    mesh = volume.cpu().extract_surface_mesh().to_legacy()
     cv3d.io.write_triangle_mesh(args.mesh_name, mesh, False, True)

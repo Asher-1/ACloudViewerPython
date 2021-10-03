@@ -134,3 +134,4 @@ CCCoreLibExport.h
 /out/
 CloudViewerAISystem/log/*
 CloudViewerAISystem/SemanticSegmentationSystem/log/*
+test_data/cloudViewer_downloads
