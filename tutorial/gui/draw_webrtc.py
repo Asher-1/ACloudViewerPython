@@ -1,6 +1,5 @@
-import cloudViewer as cv3d
-
 import os
+import cloudViewer as cv3d
 
 os.environ["WEBRTC_IP"] = "127.0.0.1"
 os.environ["WEBRTC_PORT"] = "8882"
