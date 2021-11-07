@@ -10,12 +10,12 @@ import cloudViewer as cv3d
 
 
 def pointcloud_generator():
-    # sphere = cv3d.geometry.ccMesh.create_sphere().sample_points_uniformly(int(1e4))
-    # yield "sphere", sphere, 0.01, 3.0
+    sphere = cv3d.geometry.ccMesh.create_sphere().sample_points_uniformly(int(1e4))
+    yield "sphere", sphere, 0.01, 3.0
 
-    # mesh = cv3d.geometry.ccMesh.create_torus()
-    # torus = mesh.sample_points_uniformly(int(1e4))
-    # yield "torus", torus, 0.001, 3.0
+    mesh = cv3d.geometry.ccMesh.create_torus()
+    torus = mesh.sample_points_uniformly(int(1e4))
+    yield "torus", torus, 0.001, 3.0
 
     mesh = cv3d.geometry.ccMesh.create_arrow()
     arrow = mesh.sample_points_uniformly(int(1e4))
