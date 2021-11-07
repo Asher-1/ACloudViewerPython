@@ -35,17 +35,15 @@ def pointcloud_generator():
 
 
 if __name__ == "__main__":
-    # only support on windows platform!!!
-
     np.random.seed(42)
     cv3d.utility.set_verbosity_level(cv3d.utility.Debug)
     random_color = True
-    for pcl_name, pcl, min_radius, max_radius in pointcloud_generator():
-        print("%s has %d points" % (pcl_name, pcl.size()))
-        cv3d.visualization.draw_geometries([pcl])
-        aabox = pcl.get_axis_aligned_bounding_box()
+    for pcd_name, pcd, min_radius, max_radius in pointcloud_generator():
+        print("%s has %d points" % (pcd_name, pcd.size()))
+        cv3d.visualization.draw_geometries([pcd])
+        aabox = pcd.get_axis_aligned_bounding_box()
         scale = aabox.get_max_box_dim()
-        print("cloud {} max dimension(scale) is : {}".format(pcl_name, scale))
+        print("cloud {} max dimension(scale) is : {}".format(pcd_name, scale))
 
         ransac_param = cv3d.geometry.RansacParams(scale=scale)
         enabled_list = list()
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         enabled_list.append(cv3d.geometry.RansacParams.Sphere)
         enabled_list.append(cv3d.geometry.RansacParams.Cylinder)
         enabled_list.append(cv3d.geometry.RansacParams.Cone)
-        if pcl_name == "torus" or pcl_name == "shapes":
+        if pcd_name == "torus" or pcd_name == "shapes":
             enabled_list.append(cv3d.geometry.RansacParams.Torus)
         ransac_param.prim_enabled_list = enabled_list
 
@@ -66,7 +64,7 @@ if __name__ == "__main__":
         ransac_param.max_normal_deviation_deg = 25
 
         start = time.time()
-        ransac_result = pcl.execute_ransac(params=ransac_param, print_progress=True)
+        ransac_result = pcd.execute_ransac(params=ransac_param, print_progress=True)
         print("execute ransac time cost : {}".format(time.time() - start))
         print("detect shape instances number: {}".format(len(ransac_result)))
 
@@ -80,20 +78,23 @@ if __name__ == "__main__":
                 print(prim.get_name())
                 if prim.is_kind_of(cv3d.geometry.ccObject.CYLINDER):
                     cylinder = cv3d.geometry.ToCylinder(prim)
-                    print(cylinder.get_bottom_radius())
+                    print("cylinder top radius: {}\ncylinder bottom radius: {}".format(cylinder.get_top_radius(),
+                                                                                       cylinder.get_bottom_radius()))
                 elif prim.is_kind_of(cv3d.geometry.ccObject.PLANE):
                     plane = cv3d.geometry.ToPlane(prim)
-                    print(plane.get_width())
+                    print("plane width: {}".format(plane.get_width()))
                 elif prim.is_kind_of(cv3d.geometry.ccObject.SPHERE):
                     sphere = cv3d.geometry.ToSphere(prim)
-                    print(sphere.get_radius())
+                    print("sphere radius: {}".format(sphere.get_radius()))
                 elif prim.is_kind_of(cv3d.geometry.ccObject.CONE):
                     cone = cv3d.geometry.ToCone(prim)
-                    print(cone.get_bottom_radius())
+                    print("cone top radius: {}\ncone bottom radius: {}".format(cone.get_top_radius(),
+                                                                               cone.get_bottom_radius()))
                 elif prim.is_kind_of(cv3d.geometry.ccObject.TORUS):
                     torus = cv3d.geometry.ToTorus(prim)
-                    print(torus.get_inside_radius())
-                cloud = pcl.select_by_index(res.indices)
+                    print("torus inside radius: {}\ntorus outside radius: {}".format(torus.get_inside_radius(),
+                                                                                     torus.get_outside_radius()))
+                cloud = pcd.select_by_index(res.indices)
                 if random_color:
                     color = np.random.uniform(0, 1, size=(3,))
                     cloud.paint_uniform_color(color.tolist())
