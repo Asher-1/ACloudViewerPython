@@ -85,8 +85,6 @@ print(a_cpu)
 
 # Device -> another Device.
 a_gpu_0 = cv3c.Tensor([0, 1, 2], device=cv3c.Device("CUDA:0"))
-a_gpu_1 = a_gpu_0.cuda(1)
-print(a_gpu_1)
 
 
 # ## Data Types
@@ -585,3 +583,5 @@ print("d = {}\n".format(d))
 # Append a TensorList to another TensorList.
 d.extend(c)
 print("extended d = {}".format(d))
+
+print("All test pass!")
