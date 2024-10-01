@@ -7,10 +7,10 @@
 import os, sys
 import cloudViewer as cv3d
 
-sys.path.append("../Utility")
+sys.path.append("../utility")
 from file import *
 
-sys.path.append("../Advanced")
+sys.path.append("../geometry")
 from trajectory_io import *
 from shutil import copyfile
 
