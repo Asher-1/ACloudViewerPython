@@ -157,6 +157,26 @@ def armadillo():
     return mesh
 
 
+def MonkeyPath():
+    monkey_path = _relative_path("../../test_data/monkey")
+    if not os.path.exists(monkey_path):
+        print("downloading monkey mesh")
+        url = "https://github.com/isl-org/open3d_downloads/releases/download/20220301-data/MonkeyModel.zip"
+        output_path_name = os.path.dirname(monkey_path)
+        urllib.request.urlretrieve(url,  output_path_name + ".zip")
+        print("extract monkey mesh")
+        with gzip.open(output_path_name + ".zip", "rb") as fin:
+            with open(monkey_path, "wb") as fout:
+                shutil.copyfileobj(fin, fout)
+        os.remove(output_path_name + ".zip")
+    return monkey_path
+
+def monkey():
+    monkey_path = MonkeyPath()
+    mesh = cv3d.io.read_triangle_mesh(os.path.join(monkey_path, "monkey.obj"))
+    mesh.compute_vertex_normals()
+    return mesh
+
 def bunny():
     bunny_path = _relative_path("../../test_data/Bunny.ply")
     if not os.path.exists(bunny_path):
